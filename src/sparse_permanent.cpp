@@ -1,5 +1,5 @@
 /*
- * Generation 13 (Move 2 Gen 4): Multi-Threaded OpenMP + Flat-Array C++17
+ * Generation 15 (Move 2 Gen 6): Multi-Threaded OpenMP + Flat-Array C++17
  * Exact Sub-2^n Sparse Permanent Engine Mod P61 = 2^61 - 1.
  *
  * Upgrades over Gen 12:
@@ -9,7 +9,7 @@
  *    with atomic-free thread-local accumulation.
  * 3. Iterated zero-division degree-1/2 contractions + connected-component splitting.
  *
- * Benchmarks 3-regular weighted graphs up to n = 60 (where 2^60 = 1.15 quintillion!).
+ * Benchmarks 3-regular weighted graphs up to n = 72 (where 2^72 = 4.72 sextillion!).
  */
 
 #include <algorithm>

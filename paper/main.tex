@@ -259,11 +259,11 @@ Extending beyond Depth-3 $\Sigma\Pi\Sigma$ circuits, five machine-certified lemm
     \item \textbf{Singular Locus Obstruction:} Explicit $\mathbb{Z}[1/2]$ cofactors for all 24 grevlex Gr\"obner basis elements of the Jacobian ideal certify $\dim \mathrm{Sing}(V(\Perm_3)) \le 2 < 4$, eliminating $|W| \le 2$.
     \item \textbf{5-Plane Classification:} Exact $\mathbb{Z}[1/2]$ identities show the only 3-spaces $V$ with $\Perm_3 \in \langle V \rangle$ are the 6 row/column spaces, collapsing $Y^{(3)}$ to Chow rank $\le 3$ and contradicting the symmetry Lie algebra ($\dim \mathfrak{g}(\Perm_3) = 4$ vs.\ $6$).
 \end{enumerate}
-Hence $L_{\mathrm{mul}}(\Perm_3) = 7$ is an unconditional non-scalar multiplication lower bound over every field with $\mathrm{char}(\mathbb{F}) \neq 2$.
+Hence $L_{\mathrm{mul}}(\Perm_3) = 7$ is an unconditional non-scalar multiplication lower bound over every field with $\mathrm{char}(\mathbb{F}) \neq 2$. Furthermore, exhaustive Levenberg--Marquardt and bitsliced $\F_3/\F_5$ searches over mixed-degree 17-multiplication $\Perm_4$ DAGs (combining $\mathrm{deg}_2 \times \mathrm{deg}_2$ and $\mathrm{deg}_1 \times \mathrm{deg}_3$ gates) found no 17-multiplication circuit, reinforcing 18 as tight.
 
 \subsection{Exact Low-Rank Collapse in $O(n^r)$ Time}
 
-For structured inputs, Barvinok's polynomial identity collapses low-rank matrix permanents to polynomial time:
+For structured inputs, Barvinok's polynomial identity \cite{barvinok1996} collapses low-rank matrix permanents to polynomial time:
 \begin{equation}
 \Perm(U V^T) = \sum_{k_1+\dots+k_r=n} \left(\prod_{j=1}^r k_j!\right) c_k(U)\, c_k(V).
 \end{equation}

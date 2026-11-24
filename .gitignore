@@ -9,3 +9,15 @@ paper/*.log
 paper/*.out
 paper/*.xdv
 paper/page-*.png
+
+# Local archives, HTML reports, and root scratch prototypes
+*.zip
+*.html
+sparse_permanent.py
+sparse_permanent_v2.py
+sparse_permanent.cpp
+sparse_permanent13.cpp
+sparse_permanent final push.cpp
+Matrix Permanent Gen1 To Gen10.pdf
+matrix_permanent_gen1_to_gen10.tex
+autoresearch_prompts_next_2_moves.md
