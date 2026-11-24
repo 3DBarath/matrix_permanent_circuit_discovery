@@ -1,34 +1,21 @@
 """
-Generation 5 Champion (Mode A, General n >= 3):
-Hasse-Row + Lexicographically Tie-Broken Fused Mobius-Zeta Butterfly OptTree
-for the n x n Matrix Permanent.
+Generation 7 Champion (Mode A, General n >= 3):
+Mechanism D (Double-Sided Dual-Ball Annihilation) + Hasse-Row +
+Lexicographically Tie-Broken Fused Mobius-Zeta Butterfly OptTree.
 
-Eliminates all precomputed dense rational interpolation/annihilation matrices
-(zero SymPy dependency, zero matrix inversions, exactly 1 scalar multiplication
-total across the entire circuit for any n >= 3).
-
-Key algebraic mechanisms:
-1. Hypercube Mobius-Zeta Isomorphism ({+1, -1}^(n-1) <-> {0, 1}^(n-1)):
-   Replaces O(N^2) dense rational interpolation matrices with O(m * 2^m)
-   Mobius-Zeta butterflies on canonical low-weight pivots P_d = {y : |y| <= d}
-   using only additions/subtractions (zero scalar multiplications).
-2. Fused Interpolation-Annihilation (both intermediate and start_deg):
-   Drops Mobius coefficients c_S for |S| <= d_ann prior to Forward Zeta,
-   eliminating the separate annihilation butterfly completely (0 extra gates).
-3. Hasse-Diagram 1-Add-Per-Mask Row Evaluator:
-   Evaluates row linear forms on active prefix/suffix Hamming-weight balls
-   using 2(n-1) + (K - 1) adds/subs (1 subtraction per mask from 2*row[c]),
-   cutting row-evaluation additions by up to 70% vs pruned butterfly trees.
-4. Lexicographic Tie-Breaking Over Optimal Trees:
-   Among all binary evaluation trees achieving the exact minimum non-scalar
-   multiplication count, selects the plan minimizing (total_gates, depth)
-   via a data-independent compile-time dry run.
-
-Verified milestones:
-- Non-scalar multiplications: O(2^n) (-55.2% at n=7, -74.5% at n=10, -81.9% at n=12, -86.2% at n=14).
-- Total arithmetic gates: O(n * 2^n), beating Glynn + Gray code on BOTH
-  non-scalar multiplications AND total arithmetic gates starting at n = 10
-  (10,338 vs 10,410 at n=10; 21,923 vs 22,737 at n=11; 45,940 vs 49,404 at n=12).
+NEW IN GENERATION 7 — Mechanism D (Double-Sided Dual-Ball Annihilation):
+When combining two unshifted subtrees U (degree a >= 2) and V (degree b >= 2)
+with r = n - a - b remaining rows, we simultaneously subtract a degree <= a-2
+polynomial c1 from U (vanishing on the low-weight ball Z1 = {y : |y| <= a-2})
+AND a degree <= b-2 polynomial c2 from V (vanishing on the disjoint high-weight
+ball Z2 = {y : |y| >= (n-1) - (b-2)}). Every cross error term c1*V*rem,
+U*c2*rem, and c1*c2*rem has degree <= n-2 < n-1 and vanishes identically against
+the parity character sigma over every field F (char(F) != 2).
+This reduces the product layer from N - K(n, a-2) to N - K(n, a-2) - K(n, b-2)
+non-scalar multiplications, strictly breaking the Gen 3-6 OptTree record at
+EVERY size n >= 5 (e.g. n=5: 41 vs 42, n=6: 84 vs 85, n=11: 2151 vs 2207,
+n=12: 4014 vs 4081, n=14: 14611 vs 14703), while keeping scalar_muls = 1 and
+fusing both balls directly into their O(n * 2^n) Mobius-Zeta butterflies.
 """
 
 from __future__ import annotations
@@ -52,7 +39,8 @@ def K(n: int, d: int) -> int:
 def list_optimal_tree_plans(n: int) -> tuple[int, dict, list[tuple[int, list]]]:
     """
     Dynamic program returning (min_non_scalar_muls, full_trees, all_tied_plans)
-    where each entry in all_tied_plans is (start_deg, ops) achieving min_non_scalar_muls.
+    incorporating Prefix Interpolation, Single-Sided Annihilation, Mechanism D
+    (Double-Sided Dual-Ball Annihilation), and Parseval Collapse.
     """
     N = 1 << (n - 1)
 
@@ -78,22 +66,35 @@ def list_optimal_tree_plans(n: int) -> tuple[int, dict, list[tuple[int, list]]]:
         best_cost = full[rem][0] + parseval_muls
         best_plans: list[list] = [[("parseval", a, rem, shifted, parseval_muls)]]
 
-        for b in range(1, rem):
-            ann_cost = N - K(n, a - 2)
-            if not shifted and K(n, a + b) < ann_cost:
-                step_cost = full[b][0] + K(n, a + b)
-                sub_cost, sub_plans = finish(a + b, False)
-                op = ("interp_step", b, a + b, K(n, a + b))
-            else:
-                step_cost = full[b][0] + ann_cost
-                sub_cost, sub_plans = finish(a + b, True)
-                op = ("ann_step", b, a - 2, ann_cost)
-            tot = step_cost + sub_cost
+        def consider(tot: int, op: tuple, sub_plans: list[list]) -> None:
+            nonlocal best_cost, best_plans
             if tot < best_cost:
                 best_cost = tot
                 best_plans = [[op] + sp for sp in sub_plans]
             elif tot == best_cost:
                 best_plans.extend([[op] + sp for sp in sub_plans])
+
+        for b in range(1, rem):
+            # Option 1: Prefix interpolation step (unshifted only)
+            if not shifted:
+                sc = full[b][0] + K(n, a + b)
+                sub_c, sub_ps = finish(a + b, False)
+                consider(sc + sub_c, ("interp_step", b, a + b, K(n, a + b)), sub_ps)
+
+            # Option 2: Mechanism D — Double-Sided Dual-Ball Annihilation (unshifted, a>=2, b>=2)
+            if not shifted and a >= 2 and b >= 2:
+                d_left = a - 2
+                d_right = b - 2
+                dual_muls = N - K(n, d_left) - K(n, d_right)
+                sc = full[b][0] + dual_muls
+                sub_c, sub_ps = finish(a + b, True)
+                consider(sc + sub_c, ("dual_ann_step", b, d_left, d_right, dual_muls), sub_ps)
+
+            # Option 3: Single-sided annihilation step
+            ann_cost = N - K(n, a - 2)
+            sc = full[b][0] + ann_cost
+            sub_c, sub_ps = finish(a + b, True)
+            consider(sc + sub_c, ("ann_step", b, a - 2, ann_cost), sub_ps)
 
         memo[(a, shifted)] = (best_cost, best_plans)
         return best_cost, best_plans
@@ -113,7 +114,7 @@ def list_optimal_tree_plans(n: int) -> tuple[int, dict, list[tuple[int, list]]]:
 
 
 def solve_optimal_tree_plan(n: int) -> dict:
-    """Backward-compatible wrapper returning the first minimum-multiplication plan."""
+    """Return the first minimum-multiplication Gen 7 plan."""
     min_muls, full, all_plans = list_optimal_tree_plans(n)
     start_deg, ops = all_plans[0]
     return {
@@ -204,7 +205,6 @@ def eval_row_range(row, min_w: int, max_w: int, weights: list[int] | None = None
                 )
         return out
 
-    # Pruned butterfly fallback (tiny n <= 3 or interior band 0 < min_w <= max_w < m)
     cur = {0: ((row[0], 1), 0)}
     for c in range(1, n):
         rc = (row[c], 1)
@@ -235,11 +235,7 @@ def mobius_interpolate(
     """
     Exact O(m * 2^m) Mobius-Zeta interpolation of a degree <= d multilinear
     polynomial on {0, 1}^m from its values on P_d = {y : |y| <= d}.
-
-    If drop_deg_le >= 0 (Fused Interpolation + Annihilation):
-      Zeroes all Mobius coefficients c_S with |S| <= drop_deg_le prior to
-      Forward Zeta, directly yielding U - c_{<= drop_deg_le} (identically
-      zero on |y| <= drop_deg_le) with zero extra annihilation gates.
+    Supports fused annihilation (drop_deg_le >= 0) with zero extra gates.
     """
     N = 1 << m
     if max_out_w is None:
@@ -277,7 +273,7 @@ def mobius_interpolate(
         out[full_mask] = _s_sub(acc, u0)
         return out
 
-    # Stage 1: Inverse Mobius transform restricted to |y| <= d
+    # Stage 1: Inverse Mobius on |y| <= d
     c = [piv_vals[y] if weights[y] <= d else None for y in range(N)]
     for bit in range(m):
         step = 1 << bit
@@ -310,7 +306,6 @@ def mobius_interpolate(
                     c[y] = prev if c[y] is None else _s_add(c[y], prev)
         return c
 
-    # Stage 2: Pruned Forward Zeta from |S| <= d to target weights in (d, max_out_w]
     target_min = max(d + 1, min_out_w)
     for bit in range(m):
         step = 1 << bit
@@ -399,10 +394,7 @@ def _choose_annihilate_method(present: list[bool], m: int, d_ann: int, weights: 
 
 
 def mobius_annihilate(U: list, m: int, d_ann: int, weights: list[int] | None = None) -> list:
-    """
-    Subtract the unique degree <= d_ann polynomial matching U on |y| <= d_ann.
-    Returns None on |y| <= d_ann and (U[y] - c[y]) on |y| > d_ann.
-    """
+    """Subtract the unique degree <= d_ann polynomial matching U on |y| <= d_ann."""
     N = 1 << m
     if weights is None:
         weights = [hamming_weight(y) for y in range(N)]
@@ -444,10 +436,7 @@ def mobius_annihilate(U: list, m: int, d_ann: int, weights: list[int] | None = N
 
 
 def fwht_pruned(vec: list, m: int, w_min: int, w_max: int) -> dict:
-    """
-    Pruned signed-wire Fast Walsh-Hadamard Transform computing hat(vec)[S]
-    only for w_min <= |S| <= w_max, skipping None entries and unreachable subtrees.
-    """
+    """Pruned signed-wire Fast Walsh-Hadamard Transform for w_min <= |S| <= w_max."""
     def rec(arr: list, k: int, lo: int, hi: int) -> dict:
         if lo > hi or lo > k or hi < 0:
             return {}
@@ -468,17 +457,12 @@ def fwht_pruned(vec: list, m: int, w_min: int, w_max: int) -> dict:
     return rec(vec, m, w_min, w_max)
 
 
-# ---------------------------------------------------------------------------
-# Lightweight Dry-Run Wire for Compile-Time Lexicographic Plan Selection
-# ---------------------------------------------------------------------------
-
-
 class _DryWire:
     __slots__ = ("depth", "stats")
 
     def __init__(self, depth: int, stats: list[int]) -> None:
         self.depth = depth
-        self.stats = stats  # [total_gates]
+        self.stats = stats
 
     def __add__(self, other: _DryWire) -> _DryWire:
         self.stats[0] += 1
@@ -501,6 +485,7 @@ class _DryWire:
 def _make_evaluator(n: int, full_trees: dict, start_deg: int, ops: list):
     m = n - 1
     N = 1 << m
+    full_mask = N - 1
     weights = [hamming_weight(y) for y in range(N)]
 
     def eval_full(
@@ -518,6 +503,32 @@ def _make_evaluator(n: int, full_trees: dict, start_deg: int, ops: list):
             drop_deg_le=drop_deg_le, weights=weights,
         )
 
+    def eval_full_flipped_ann(A_rows, deg_m: int, offset: int, d_right: int, min_y_w: int) -> list:
+        """
+        Build full[deg_m] on the bit-flipped hypercube z = full_mask ^ y,
+        fusing high-weight ball annihilation |y| >= m - d_right (|z| <= d_right)
+        directly into the Mobius-Zeta interpolation with zero extra gates.
+        Only computes target y with min_y_w <= |y| < m - d_right, i.e. d_right < |z| <= m - min_y_w.
+        """
+        max_z_out = m - min_y_w
+
+        def eval_rev(dm: int, off: int, max_z_w: int, drop_z_le: int = -1) -> list:
+            if dm == 1:
+                raw = eval_row_range(A_rows[off], m - max_z_w, m, weights=weights)
+                return [raw[full_mask ^ z] for z in range(N)]
+            _, spec = full_trees[dm]
+            _, a, b, deg = spec
+            L = eval_rev(a, off, deg)
+            R = eval_rev(b, off + a, deg)
+            piv = [_s_mul(L[z], R[z]) if weights[z] <= deg else None for z in range(N)]
+            return mobius_interpolate(
+                piv, m, deg, max_out_w=max_z_w,
+                min_out_w=max(0, drop_z_le + 1), drop_deg_le=drop_z_le, weights=weights,
+            )
+
+        v_flip = eval_rev(deg_m, offset, max_z_out, drop_z_le=d_right)
+        return [v_flip[full_mask ^ y] for y in range(N)]
+
     def next_max_w(op_idx: int) -> int:
         if op_idx < len(ops) and ops[op_idx][0] == "interp_step":
             return ops[op_idx][2]
@@ -525,10 +536,11 @@ def _make_evaluator(n: int, full_trees: dict, start_deg: int, ops: list):
 
     def evaluate(A, p: int | None = None, inv_N=None, inv_N2=None):
         row_ptr = 0
-        if start_deg >= 2 and ops[0][0] == "ann_step" and ops[0][2] >= 0:
+        if start_deg >= 2 and ops[0][0] in ("ann_step", "dual_ann_step") and ops[0][2] >= 0:
             d_ann = ops[0][2]
+            max_y = (m - 1 - ops[0][3]) if ops[0][0] == "dual_ann_step" else m
             cur = eval_full(
-                A, start_deg, row_ptr, min_out_w=d_ann + 1, max_out_w=m, drop_deg_le=d_ann
+                A, start_deg, row_ptr, min_out_w=d_ann + 1, max_out_w=max_y, drop_deg_le=d_ann
             )
             already_ann_deg = d_ann
         else:
@@ -543,10 +555,12 @@ def _make_evaluator(n: int, full_trees: dict, start_deg: int, ops: list):
                 rhs = eval_full(A, b, row_ptr, 0, deg)
                 row_ptr += b
                 piv = [_s_mul(cur[i], rhs[i]) if weights[i] <= deg else None for i in range(N)]
-                if idx + 1 < len(ops) and ops[idx + 1][0] == "ann_step" and ops[idx + 1][2] >= 0:
-                    d_ann = ops[idx + 1][2]
+                if idx + 1 < len(ops) and ops[idx + 1][0] in ("ann_step", "dual_ann_step") and ops[idx + 1][2] >= 0:
+                    nxt_op = ops[idx + 1]
+                    d_ann = nxt_op[2]
+                    max_y = (m - 1 - nxt_op[3]) if nxt_op[0] == "dual_ann_step" else m
                     cur = mobius_interpolate(
-                        piv, m, deg, max_out_w=m, min_out_w=d_ann + 1,
+                        piv, m, deg, max_out_w=max_y, min_out_w=d_ann + 1,
                         drop_deg_le=d_ann, weights=weights,
                     )
                     already_ann_deg = d_ann
@@ -555,6 +569,21 @@ def _make_evaluator(n: int, full_trees: dict, start_deg: int, ops: list):
                         piv, m, deg, max_out_w=next_max_w(idx + 1), weights=weights
                     )
                     already_ann_deg = -1
+
+            elif kind == "dual_ann_step":
+                _, b, d_left, d_right, _ = op
+                shifted_cur = (
+                    cur if already_ann_deg == d_left else mobius_annihilate(cur, m, d_left, weights=weights)
+                )
+                shifted_rhs = eval_full_flipped_ann(A, b, row_ptr, d_right, min_y_w=d_left + 1)
+                row_ptr += b
+                cur = [
+                    _s_mul(shifted_cur[i], shifted_rhs[i])
+                    if (shifted_cur[i] is not None and shifted_rhs[i] is not None)
+                    else None
+                    for i in range(N)
+                ]
+                already_ann_deg = -1
 
             elif kind == "ann_step":
                 _, b, deg_ann, _ = op
@@ -575,7 +604,6 @@ def _make_evaluator(n: int, full_trees: dict, start_deg: int, ops: list):
                     last_row = A[row_ptr]
                     row_ptr += 1
                     hat = fwht_pruned(cur, m, m - 1, m)
-                    full_mask = N - 1
                     total = None
                     for col in range(n):
                         S = full_mask if col == 0 else (full_mask ^ (1 << (col - 1)))
@@ -594,7 +622,6 @@ def _make_evaluator(n: int, full_trees: dict, start_deg: int, ops: list):
                     max_w = min(a, m) if not shifted else m
                     hat_a = fwht_pruned(cur, m, a - 1, max_w)
                     hat_b = fwht_pruned(rhs, m, m - max_w, m - (a - 1))
-                    full_mask = N - 1
                     total = None
                     for S, va in hat_a.items():
                         vb = hat_b.get(full_mask ^ S)
@@ -614,8 +641,8 @@ def _make_evaluator(n: int, full_trees: dict, start_deg: int, ops: list):
 
 def build_butterfly_opttree_circuit(n: int):
     """
-    Build the lexicographically optimal (min non_scalar_muls, then min total_gates,
-    then min depth) matrix-free Fused Butterfly OptTree circuit for Perm_n(A).
+    Build the lexicographically optimal Gen 7 (Mechanism D + Hasse-Row + Fused Butterfly)
+    circuit for Perm_n(A): minimizes (non_scalar_muls, total_gates, depth).
     """
     if n < 2:
         raise ValueError("n must be >= 2")

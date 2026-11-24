@@ -11,16 +11,16 @@ Exact, branch-free arithmetic Straight-Line Programs (SLPs) for the $n \times n$
 
 ### 1. Multiplicative & Total Gate Complexity (Generations 1–6)
 
-| $n$ | Glynn (Baseline Muls) | **Our Multiplications** | Mul Savings | **Our Total Gates (Gen 5/6)** | Glynn + Gray Gates | Gate Advantage | Verification |
+| $n$ | Glynn (Baseline Muls) | **Our Multiplications (Gen 7)** | Mul Savings | **Our Total Gates (Gen 7)** | Glynn + Gray Gates | Gate Advantage | Verification |
 |---:|---:|---:|---:|---:|---:|---:|---|
 | **3** | 8 | **7** | **−12.5%** | **29** | 33 | **−12.1%** | 50/50 modular ($p_1, p_2$) |
 | **4** | 24 | **18** | **−25.0%** | **84–87** | 84 | $+3.6\%$ | Symbolic $\mathbb{Q}[A]$ (res=0) + 100/100 modular |
-| **5** | 64 | **42** | **−34.4%** | **213** | 195 | $+9.2\%$ | 50/50 modular ($p_1, p_2$) |
-| **6** | 160 | **85** | **−46.9%** | **501** | 438 | $+14.4\%$ | 50/50 modular ($p_1, p_2$) |
-| **7** | 384 | **172** | **−55.2%** | **1,074** | 973 | $+10.4\%$ | 20/20 modular ($p_1, p_2$) |
-| **8** | 896 | **322** | **−64.1%** | **2,374** | 2,152 | $+10.3\%$ | 20/20 modular ($p_1, p_2$) |
-| **10** | 4,608 | **1,176** | **−74.5%** | **10,338** | **10,410** | **Strictly Fewer Total Gates (−0.7%)** | 10/10 modular ($p_1, p_2$) |
-| **12** | 22,528 | **4,081** | **−81.9%** | **45,940** | **49,404** | **Strictly Fewer Total Gates (−7.0%)** | 4/4 modular ($p_1, p_2$) |
+| **5** | 64 | **41** | **−35.9%** | **227** | 195 | $+16.4\%$ | 50/50 modular ($p_1, p_2$) |
+| **6** | 160 | **84** | **−47.5%** | **497** | 438 | $+13.5\%$ | 50/50 modular ($p_1, p_2$) |
+| **7** | 384 | **171** | **−55.5%** | **1,120** | 973 | $+15.1\%$ | 20/20 modular ($p_1, p_2$) |
+| **8** | 896 | **321** | **−64.2%** | **2,312** | 2,152 | $+7.4\%$ | 20/20 modular ($p_1, p_2$) |
+| **10** | 4,608 | **1,166** | **−74.7%** | **10,115** | **10,410** | **Strictly Fewer Total Gates (−2.8%)** | 10/10 modular ($p_1, p_2$) |
+| **12** | 22,528 | **4,014** | **−82.2%** | **45,265** | **49,404** | **Strictly Fewer Total Gates (−8.4%)** | 4/4 modular ($p_1, p_2$) |
 
 ---
 
@@ -31,6 +31,7 @@ Exact, branch-free arithmetic Straight-Line Programs (SLPs) for the $n \times n$
 * **Gen 3 (`general_n_opttree.py`):** General-$n$ dynamic programming binary tree with Dual Degree-Parity compression (Prefix Degree Interpolation + Suffix Parity Annihilation + Parseval Final Collapse), proving the asymptotic **$O(2^n)$** non-scalar bound.
 * **Gen 5 Champion (`general_n_butterfly_opttree.py`):** Eliminates all dense rational matrices using $O(m 2^m)$ Möbius-Zeta butterfly networks and Hasse-diagram row evaluation. Proves that total gates scale at $O(n 2^n)$, beating Glynn + Gray code on **both** multiplications and total gates at $n \ge 10$.
 * **Gen 6 (`slp_compiler.py` & `opttree_native_mod61.cpp`):** Full Straight-Line Program SSA compiler with algebraic CSE and dead-code elimination. Includes a native C++17 hardware benchmark running branch-free 128-bit modular arithmetic over the Mersenne prime $2^{61}-1$, bit-exact verified up to $n = 14$.
+* **Gen 7 Champion (`general_n_butterfly_opttree.py` & `bench_poly8_mod61.cpp`):** Discovers **Mechanism D** (Double-Sided Dual-Ball Annihilation). By subtracting degree-bounded polynomials from *both* subtrees simultaneously on disjoint low- and high-weight Hamming balls, all cross-terms vanish against the parity character. Strictly breaks prior records across dimensions (e.g. $n=5 \implies 41$ muls; $n=10 \implies 1{,}166$ muls and $-2.8\%$ gates; $n=12 \implies 4{,}014$ muls and $-8.4\%$ gates). Includes 1.6 MB polynomial-ring SIMD benchmark over $\mathbb{F}_{2^{61}-1}[x]/(x^8-2)$.
 
 ---
 

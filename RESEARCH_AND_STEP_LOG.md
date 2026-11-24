@@ -85,3 +85,16 @@ This log records every mathematical hypothesis, computational experiment, failur
   - `src/slp_compiler.py`: Evaluates the execution DAG, applies algebraic Common Subexpression Elimination and Dead Code Elimination, and emits flat C++17 straight-line programs.
   - `src/opttree_native_mod61.cpp`: Native hardware kernel over the Mersenne prime $2^{61}-1$ with unrolled `__uint128_t` arithmetic.
 - **Verification:** Bit-exact verification against native Glynn + Gray baseline across 32/32 trials for all dimensions $n = 4 \dots 14$.
+
+---
+
+## Step 7 — Generation 7: Mechanism D (Double-Sided Dual-Ball Annihilation)
+- **Hypothesis:** When combining two unshifted subtrees $U$ (degree $a$) and $V$ (degree $b$), single-sided annihilation only zeroes terms on one side. Can we zero both sides on disjoint balls without corrupting the permanent?
+- **Algebraic Derivation:** Subtracted degree $\le a-2$ polynomial from $U$ on low-weight ball and degree $\le b-2$ polynomial from $V$ on disjoint high-weight ball. Every cross-term in the product $(U - c_1)(V - c_2) R$ has degree $\le n - 2 < n - 1$, vanishing identically against the parity character $\sigma$.
+- **New Milestones:**
+  - $n = 5$: **41 muls** (beat 42)
+  - $n = 6$: **84 muls** (beat 85)
+  - $n = 7$: **171 muls** (beat 172)
+  - $n = 10$: **1,166 muls** and **10,115 gates** (−2.8% vs Glynn)
+  - $n = 12$: **4,014 muls** and **45,265 gates** (−8.4% vs Glynn)
+- **Ring Extension:** Added `src/bench_poly8_mod61.cpp` running over polynomial ring $\mathbb{F}_{2^{61}-1}[x] / (x^8 - 2)$.

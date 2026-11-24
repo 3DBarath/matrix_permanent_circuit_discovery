@@ -97,6 +97,21 @@ Generation 6 introduces an end-to-end hardware execution pipeline:
 
 ---
 
-## 6. Open Directions
+## 6. Generation 7: Mechanism D (Double-Sided Dual-Ball Annihilation)
+
+Generation 7 introduces an algebraic mechanism that shatters the single-sided annihilation bound:
+* **Theorem (Double-Sided Annihilation):** When multiplying unshifted subtrees $U$ (degree $a \ge 2$) and $V$ (degree $b \ge 2$) with $r = n - a - b$ remaining rows, we simultaneously subtract $c_1$ (degree $\le a-2$, vanishing on low-weight ball $|y| \le a-2$) from $U$ and $c_2$ (degree $\le b-2$, vanishing on disjoint high-weight ball $|y| \ge n - 1 - (b-2)$) from $V$.
+* **Proof of Exactness:** All cross-terms $c_1 V R$, $U c_2 R$, and $c_1 c_2 R$ have degree $\le n - 2 < n - 1$. By Walsh character orthogonality, their parity-weighted sum is identically zero!
+* **Complexity:** Reduces non-scalar multiplications to $2^{n-1} - K(n, a-2) - K(n, b-2)$, achieving new world records:
+  - $n = 5$: **41 muls** (vs 42 Gen 5, 64 Glynn, −35.9%)
+  - $n = 6$: **84 muls** (vs 85 Gen 5, 160 Glynn, −47.5%)
+  - $n = 7$: **171 muls** (vs 172 Gen 5, 384 Glynn, −55.5%)
+  - $n = 10$: **1,166 muls** (vs 1,176 Gen 5, 4,608 Glynn, −74.7%) with **10,115 gates** (−2.8% vs Glynn)
+  - $n = 12$: **4,014 muls** (vs 4,081 Gen 5, 22,528 Glynn, −82.2%) with **45,265 gates** (−8.4% vs Glynn)
+* **Polynomial-Ring SIMD Verification (`bench_poly8_mod61.cpp`):** Stress-tested over $\mathbb{F}_{2^{61}-1}[x] / (x^8 - 2)$.
+
+---
+
+## 7. Open Directions
 - **Sub-18 at $n = 4$:** Determining whether a non-Glynn multilinear or depth-3 product-rank-6 circuit exists to push below 18 non-scalar multiplications remains an open target for Mode B search.
 - **Hardware Vectorization (AVX-512 / GPU):** Extending the Gen 6 native C++ kernel to SIMD vector registers to leverage the wide parallel branches in `OptTree`.
