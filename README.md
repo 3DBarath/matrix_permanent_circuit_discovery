@@ -88,3 +88,19 @@ plan, ev = build_schur_f2_circuit(6)
 print(f'n=6 Gen 10 non-scalar muls: {plan[\"non_scalar_muls\"]}')
 "
 ```
+
+
+---
+
+## Generation 11–16 Highlights
+- **Dense Circuits (Gen 1–10):** Eliminated Glynn's $(n-1)$ factor to hit the exact $O(2^n)$ linear hypercube floor ($52,488$ muls at $n=16$, $-89.3\%$), with $-13.1\%$ total gates at $n=12$ and up to $2.86\times$ C++17 wall-clock speedup.
+- **Low-Rank Collapse (Gen 9):** Exact $O(n^r)$ polynomial-time Barvinok solver (`src/low_rank_permanent.py`).
+- **Sparse & Graph Permanents (Gen 11–15):** Exact sub-$2^n$ C++17 + OpenMP solver (`src/sparse_permanent.cpp`) solving **$72 \times 72$ weighted 3-regular permanents in 0.58s–2.12s** (**$4.05 \times 10^{13}\times$ fewer ops** than $2^{72}$).
+- **Generation 16 Extensions:**
+  - **Complex Boson Sampling (`src/boson_sampling_complex.cpp`):** `std::complex<double>` with `long double` accumulation, solving $n=60$ complex unitary permanents in **192.15 ms** (`0.000e+00` error vs. Glynn).
+  - **Sparse Hafnians (`src/sparse_hafnian.cpp`):** Exact sub-$2^n$ non-bipartite Hafnian solver for Gaussian Boson Sampling ($n=36$ in **0.138 ms**).
+  - **CUDA Colab Kernel (`colab/sparse_permanent_cuda.cu` & `colab/run_in_colab.ipynb`):** GPU-batched Frontier DP.
+  - **Lean 4 Formalization (`lean/PermanentProofs.lean`):** Machine-checked formalization of Degree-2 contraction and Depth-3 $\Sigma\Pi\Sigma$ product rank.
+- **Preprint Papers:**
+  - **Paper I ([`paper/main.pdf`](paper/main.pdf)):** Dense $O(2^n)$ Hypercube Floor + Depth-3 $\Sigma\Pi\Sigma$ Proof.
+  - **Paper II ([`paper_sparse/main.pdf`](paper_sparse/main.pdf)):** Sub-$2^n$ Sparse Permanent ($n=72$) + Gen 16 Extensions.

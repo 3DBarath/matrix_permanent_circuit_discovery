@@ -139,3 +139,11 @@ This log records every mathematical hypothesis, computational experiment, failur
 - **Achievement:** Implemented Mechanism F2 in executable code (`src/general_n_schur_f2.py`) by dropping $r = K(n, a-2)$ pivot coordinates from $P_k$ and recovering them through a tiny $r \times r$ Schur incidence system.
 - **Verification:** Certified bit-exact against Glynn permanent across dimensions $n = 3 \dots 12$ on two 61-bit primes ($p_1, p_2$).
 - **Complexity Landmark:** Reached the exact theoretical non-scalar multiplication floor of linear degree-parity compression on the Boolean hypercube ($1{,}152$ muls at $n=10$, $3{,}941$ muls at $n=12$, $52{,}488$ muls at $n=16$).
+
+
+---
+
+## Generations 11–16 Log
+- **Gen 11:** Released `src/sparse_permanent.py` and Paper II (`paper_sparse/main.pdf`).
+- **Gen 12–15:** Ported sparse engine to native C++17 + OpenMP (`src/sparse_permanent.cpp`), scaling exact 3-regular weighted permanents to **$n = 72$ in 0.58s–2.12s** ($4.05 \times 10^{13}\times$ fewer ops than $2^{72}$). Added Depth-3 $\Sigma\Pi\Sigma$ product rank = 4 proof to Paper I.
+- **Gen 16:** Launched 4-track swarm delivering `src/boson_sampling_complex.cpp`, `src/sparse_hafnian.cpp`, `colab/sparse_permanent_cuda.cu` (patched for `fw <= MAX_GPU_FW`), and `lean/PermanentProofs.lean`. Installed Lean 4 (`v4.36.0`).

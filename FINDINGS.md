@@ -147,3 +147,17 @@ Generation 10 implements Mechanism F2 via an exact Schur-complement butterfly ar
 
 ## 10. Open Directions
 - **Sub-18 at $n = 4$:** Determining whether a non-Glynn multilinear or depth-3 product-rank-6 circuit exists to push below 18 non-scalar multiplications remains an open target for Mode B search.
+
+
+---
+
+## Generations 11–16: Sub-$2^n$ Sparse Permanents, Quantum Boson Sampling, and Formal Proofs
+
+- **Gen 11 (`src/sparse_permanent.py`):** Iterated degree-1 peeling, degree-2 series contractions, connected-component factorization, and Min-Frontier DP. Achieved **$1.238^n$** on 3-regular graphs ($n=28$ in 3.60 ms).
+- **Gen 12–15 (`src/sparse_permanent.cpp`):** Native C++17 + OpenMP flat-array engine (`fw <= 15`). Solved **$n=48$** (76 ms), **$n=60$** (75 ms on 8 threads), **$n=64$** (9.78s), and **$n=72$** in **2.12s** (2 threads) / **0.58s** (8 threads) — **$4.05 \times 10^{13}\times$ fewer ops** than $2^{72}$.
+- **Gen 15 Algebraic Closure:** Proved via substitution method that Depth-3 $\Sigma\Pi\Sigma$ product rank of $\mathrm{Perm}_3$ is strictly **4** over $\mathrm{char}(\mathbb{F}) \neq 2$.
+- **Gen 16 Extensions:**
+  - `src/boson_sampling_complex.cpp`: Complex unitary permanents ($n=60$ in 192.15 ms, `0.000e+00` error vs. Glynn).
+  - `src/sparse_hafnian.cpp`: Exact sub-$2^n$ Hafnian solver ($n=36$ in 0.138 ms, `max_rel_err <= 3.2e-16`).
+  - `colab/sparse_permanent_cuda.cu`: Google Colab CUDA kernel with `fw <= MAX_GPU_FW` guard.
+  - `lean/PermanentProofs.lean`: Lean 4 / Mathlib4 formalizations.
