@@ -273,10 +273,36 @@ Graph Family & $n$ & Avg DP Ops & Dense $2^n$ Ops & Ratio (Speedup) & Max Fronti
 
 Fitting the operation count $T(n) = C \cdot \alpha^n$ yields the following empirical bases:
 \begin{itemize}[leftmargin=*]
-    \item \textbf{3-Regular Bipartite Graphs:} $\alpha \approx \mathbf{1.216}$--$\mathbf{1.238}$. Across extensive benchmarks up to $n = 40$, the champion hybrid executes $n=36$ in 17,212 ops ($34.3$ ms) and $n=40$ in 38,559 ops, cutting dense operations by over $3.99\times 10^6 \times$.
+    \item \textbf{3-Regular Bipartite Graphs:} $\alpha \approx \mathbf{1.216}$--$\mathbf{1.238}$ in frontier-DP regime and $\mathbf{1.303}$ across deep cascade-branching up to $n = 48$.
     \item \textbf{4-Regular Bipartite Graphs:} $\alpha \approx \mathbf{1.416}$. The frontier width satisfies $fw(n) \approx 0.52 n$, outperforming the dense $2^n$ baseline by more than two orders of magnitude at $n = 24$.
     \item \textbf{Banded Matrices ($w \in \{4,5,6\}$):} Strict $O(n)$ linear scaling, evaluating $n = 32$ in under $1$\,ms.
 \end{itemize}
+
+\subsection{Native C++17 Execution up to $n = 48$ (Generation 12)}
+
+To eliminate Python interpreter overhead and evaluate exact modular arithmetic at hardware speed, we implemented the full reduction + cascade-branching + min-frontier DP architecture in native C++17 (\texttt{src/sparse\_permanent.cpp}) over the Mersenne prime $\F_{2^{61}-1}$ using 128-bit multiplication intrinsics. Table~\ref{tab:cpp_sparse_bench} reports wall-clock runtimes compiled with \texttt{g++ -O3 -march=native}.
+
+\begin{table}[!htbp]
+\centering
+\caption{Native C++17 (\texttt{src/sparse\_permanent.cpp}) exact 3-regular weighted permanent benchmarks ($n = 20\text{--}48$) modulo $2^{61}-1$.}
+\label{tab:cpp_sparse_bench}
+\begin{tabularx}{\linewidth}{rrrrrr}
+\toprule
+$n$ & Avg Ops & Dense $2^n$ Ops & Ratio (Speedup) & Branches & Native Time \\
+\midrule
+20 & 521.8   & 1,048,576           & $2,009.5\times$     & 0.0     & 0.04 ms \\
+24 & 1,505.6 & 16,777,216          & $11,143.2\times$    & 0.6     & 0.12 ms \\
+28 & 3,347.4 & 268,435,456         & $80,192.2\times$    & 1.4     & 0.27 ms \\
+32 & 7,352.6 & 4,294,967,296       & $584,142.7\times$   & 6.0     & 0.67 ms \\
+36 & 20,149.8 & 68,719,476,736     & $3,410,429.7\times$ & 17.8    & 1.80 ms \\
+40 & 109,542.7 & 1,099,511,627,776 & $10,037,291.1\times$ & 125.0  & 9.38 ms \\
+44 & 233,016.7 & 17,592,186,044,416 & $75,497,544.0\times$ & 254.7 & 19.43 ms \\
+\textbf{48} & \textbf{905,802.0} & \textbf{281,474,976,710,656} & \textbf{310,746,693.8$\times$} & \textbf{1,107.0} & \textbf{76.23 ms} \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+At $n = 48$, where dense $2^{48}$ requires $281.5$ trillion operations, the native C++17 engine computes the exact permanent in **76.23 ms** with $905,802$ operations ($310.7\text{M}\times$ fewer operations), verified permutation-invariant and bit-exact against Glynn at $n=10\text{–}16$.
 
 \takeaway{Breaking the $2^n$ Barrier}{While Part~I established that the base $2.000$ represents the rigid information-theoretic floor for linear polarization on dense matrices, structured and bounded-degree matrices do not inherit this bound. By interleaving degree-2 series contractions with frontier-compressed dynamic programming, we achieve exact sub-$2^n$ scaling ($\mathbf{1.238^n}$ for $d=3$), resolving a longstanding practical obstacle in exact counting.}
 
