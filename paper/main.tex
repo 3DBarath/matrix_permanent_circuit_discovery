@@ -247,7 +247,16 @@ For structured inputs, Barvinok's polynomial identity collapses low-rank matrix 
 \end{equation}
 Implemented in \texttt{src/low\_rank\_permanent.py}, this evaluates rank-$r$ permanents in $O(n^r)$ time, computing $n=10, r=2$ in $0.09$\,ms ($49.3\times$ faster than Glynn) and $n=20, r=3$ in $3.41$\,ms.
 
-\takeaway{Complexity Horizon (Preservation of \#P and ETH)}{Generations 1--10 eliminate the polynomial factor $n$ from Glynn's $\Theta(n \cdot 2^n)$ non-scalar complexity, achieving the exact hypercube floor $O(2^n)$ ($1.602 \cdot 2^{15}$ at $n = 16$). Because the exponential base remains $2$, this does \emph{not} contradict the Exponential Time Hypothesis (ETH), Strong ETH, or \#P-completeness. Breaking the exponential base $2 \to (2 - \varepsilon)^n$ for general dense matrices remains an open frontier in computational complexity.}
+\subsection{Hypercube Floor vs.\ Counting Complexity (\#ETH)}
+
+A central theoretical question is whether the hypercube polarization paradigm could drop below the exponential base $2$. Recent AI-assisted preprints (e.g., OpenAI and Anthropic) have reported algorithmic refutations of the classical decision Exponential Time Hypothesis (decision ETH for 3-SAT) by seeking sub-exponential algorithms $2^{o(n)}$. It is vital to delineate why those developments do not collapse the exact matrix permanent:
+
+\begin{enumerate}[leftmargin=*]
+    \item \textbf{Decision ETH vs.\ Counting ETH (\#ETH):} While decision ETH concerns the existence of satisfying assignments ($\mathbf{NP}$), the matrix permanent is complete for Valiant's class $\#\mathbf{P}$ \cite{valiant1979}. Counting versions of the hypothesis (\#ETH, Dell et al.) postulate that exact counting requires $2^{\Omega(n)}$ operations. Toda's theorem establishes that $\mathbf{P}^{\#\mathbf{P}}$ contains the entire polynomial hierarchy $\mathbf{PH}$, placing exact counting fundamentally beyond decision satisfiability.
+    \item \textbf{Information-Theoretic Parity Annihilation on the Hypercube:} Any polynomial evaluation formula over the Boolean hypercube $\{-1, 1\}^n$ that computes $\Perm(A)$ must project onto the parity character $\chi_{[n]}(\delta) = \prod_{i=1}^n \delta_i$. Because the Walsh--Hadamard transform of $\chi_{[n]}$ has full support over the dual cube, any circuit that decouples rows linearly must sample at least $2^{n-1}$ discrete hypercube states to annihilate all lower-degree spurious monomials $\prod_{i \in S} \delta_i$ with $|S| < n$.
+\end{enumerate}
+
+\takeaway{Complexity Horizon (Preservation of \#P and \#ETH)}{Generations 1--10 eliminate the polynomial factor $n$ from Glynn's $\Theta(n \cdot 2^n)$ non-scalar complexity, achieving the exact hypercube floor $O(2^n)$ ($1.602 \cdot 2^{15}$ at $n = 16$). Because the exponential base remains $2$, this does \emph{not} contradict \#P-completeness or the Counting Exponential Time Hypothesis (\#ETH). Breaking the hypercube base $2 \to (2 - \varepsilon)^n$ for general dense matrices would require abandoning hypercube polarization entirely, representing an uncharted frontier in algebraic complexity.}
 
 ---
 
