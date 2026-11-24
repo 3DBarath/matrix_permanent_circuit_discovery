@@ -305,10 +305,14 @@ __global__ void frontier_dp_batch_kernel(
         return;
     }
 
+    static constexpr int SHARED_FW_LIMIT = 11; // 2 * 2048 * 8 = 32 KB <= 48 KB T4 limit
+    __shared__ uint64_t s_dp_buf[2][1 << SHARED_FW_LIMIT];
+
     uint64_t* buf0 = dp_workspace + (size_t)bid * 2 * (1ULL << GPU_BUF_BITS);
     uint64_t* buf1 = buf0 + (1ULL << GPU_BUF_BITS);
-    uint64_t* dp_val = buf0;
-    uint64_t* nxt_val = buf1;
+    uint64_t* dp_val = s_dp_buf[0];
+    uint64_t* nxt_val = s_dp_buf[1];
+    bool in_shared = true;
 
     __shared__ int s_frontier[MAX_GPU_FW + 8];
     __shared__ int s_keep_idx[MAX_GPU_FW + 8];
@@ -345,6 +349,16 @@ __global__ void frontier_dp_batch_kernel(
 
         int prev_sz = 1 << s_fw;
         int nxt_sz  = 1 << s_nxt_fw;
+
+        if (in_shared && s_nxt_fw > SHARED_FW_LIMIT) {
+            for (int m = tid; m < prev_sz; m += blockDim.x) {
+                buf0[m] = dp_val[m];
+            }
+            dp_val = buf0;
+            nxt_val = buf1;
+            in_shared = false;
+            __syncthreads();
+        }
 
         for (int m = tid; m < nxt_sz; m += blockDim.x) nxt_val[m] = 0;
         __syncthreads();

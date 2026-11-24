@@ -5,6 +5,7 @@
 #include <iomanip>
 #include <iostream>
 #include <numeric>
+#include <omp.h>
 #include <queue>
 #include <random>
 #include <unordered_map>
@@ -79,8 +80,8 @@ struct SparseGraph {
     std::vector<std::vector<std::pair<int, double>>> adj;
 };
 
-// Greedy min-frontier vertex ordering
-std::vector<int> compute_min_frontier_order(const SparseGraph& g) {
+// Greedy min-frontier vertex ordering; optionally returns max frontier width
+std::vector<int> compute_min_frontier_order(const SparseGraph& g, int* max_frontier_out = nullptr) {
     int n = g.n;
     std::vector<int> order;
     order.reserve(n);
@@ -90,8 +91,11 @@ std::vector<int> compute_min_frontier_order(const SparseGraph& g) {
         rem_deg[i] = static_cast<int>(g.adj[i].size());
     }
 
+    int cur_f = 0;
+    int max_f = 0;
     // Track current frontier: placed vertices with rem_deg > 0
     for (int step = 0; step < n; ++step) {
+        max_f = std::max(max_f, cur_f);
         int best_v = -1;
         int best_delta = 1e9;
         int best_rem_deg = 1e9;
@@ -116,23 +120,29 @@ std::vector<int> compute_min_frontier_order(const SparseGraph& g) {
 
         order.push_back(best_v);
         placed[best_v] = true;
+        int unplaced_nbrs = 0;
         for (const auto& [u, w] : g.adj[best_v]) {
             if (placed[u]) {
                 --rem_deg[u];
+                if (rem_deg[u] == 0) --cur_f;
                 --rem_deg[best_v];
+            } else {
+                ++unplaced_nbrs;
             }
         }
+        if (unplaced_nbrs > 0) ++cur_f;
     }
+    if (max_frontier_out) *max_frontier_out = max_f;
     return order;
 }
 
-// Min-Frontier DP on a connected component
-double min_frontier_dp(const SparseGraph& g, int* max_frontier_out = nullptr) {
+// Min-Frontier DP on a connected component using precomputed order and frontier width.
+// Uses flat-array DP when fw <= 14, and unordered_map fallback for fw > 14.
+double min_frontier_dp_with_order(const SparseGraph& g, const std::vector<int>& order, int fw) {
     int n = g.n;
     if (n == 0) return 1.0;
     if (n % 2 != 0) return 0.0;
 
-    std::vector<int> order = compute_min_frontier_order(g);
     std::vector<int> pos(n);
     for (int i = 0; i < n; ++i) pos[order[i]] = i;
 
@@ -144,16 +154,19 @@ double min_frontier_dp(const SparseGraph& g, int* max_frontier_out = nullptr) {
         }
     }
 
+    const bool use_flat = (fw <= 14);
     std::vector<int> frontier;
-    std::unordered_map<uint64_t, double> dp;
-    dp[0] = 1.0;
-
-    int max_f = 0;
+    std::vector<double> flat_dp;
+    std::unordered_map<uint64_t, double> map_dp;
+    if (use_flat) {
+        flat_dp.assign(1, 1.0);
+    } else {
+        map_dp[0] = 1.0;
+    }
 
     for (int step = 0; step < n; ++step) {
         int v = order[step];
         int f_size = static_cast<int>(frontier.size());
-        max_f = std::max(max_f, f_size);
 
         // Map frontier vertex -> bit index
         std::vector<int> f_idx(n, -1);
@@ -188,9 +201,6 @@ double min_frontier_dp(const SparseGraph& g, int* max_frontier_out = nullptr) {
             return true;
         };
 
-        std::unordered_map<uint64_t, double> next_dp;
-        next_dp.reserve(dp.size() * 2 + 16);
-
         // Precompute backward neighbors of v in frontier
         std::vector<std::pair<int, double>> back_nbrs;
         for (const auto& [u, w] : g.adj[v]) {
@@ -199,57 +209,89 @@ double min_frontier_dp(const SparseGraph& g, int* max_frontier_out = nullptr) {
             }
         }
 
-        for (const auto& [mask, val] : dp) {
-            if (val == 0.0) continue;
+        if (use_flat) {
+            size_t next_sz = 1ULL << next_frontier.size();
+            std::vector<double> next_flat_dp(next_sz, 0.0);
+            size_t cur_sz = flat_dp.size();
 
-            // Option A: leave v unmatched (only if v_next_bit != -1)
-            if (v_next_bit != -1) {
-                uint64_t nmask = 0;
-                if (project_mask(mask, nmask)) {
-                    nmask |= (1ULL << v_next_bit);
-                    next_dp[nmask] += val;
-                }
-            }
+            for (size_t mask = 0; mask < cur_sz; ++mask) {
+                double val = flat_dp[mask];
+                if (val == 0.0) continue;
 
-            // Option B: match v with an unmatched backward neighbor u in frontier
-            for (const auto& [ub, w] : back_nbrs) {
-                if ((mask >> ub) & 1ULL) {
-                    uint64_t cleared = mask & ~(1ULL << ub);
+                if (v_next_bit != -1) {
                     uint64_t nmask = 0;
-                    if (project_mask(cleared, nmask)) {
-                        next_dp[nmask] += val * w;
+                    if (project_mask(mask, nmask)) {
+                        next_flat_dp[nmask | (1ULL << v_next_bit)] += val;
+                    }
+                }
+
+                for (const auto& [ub, w] : back_nbrs) {
+                    if ((mask >> ub) & 1ULL) {
+                        uint64_t cleared = mask & ~(1ULL << ub);
+                        uint64_t nmask = 0;
+                        if (project_mask(cleared, nmask)) {
+                            next_flat_dp[nmask] += val * w;
+                        }
                     }
                 }
             }
+            flat_dp = std::move(next_flat_dp);
+        } else {
+            std::unordered_map<uint64_t, double> next_dp;
+            next_dp.reserve(map_dp.size() * 2 + 16);
+
+            for (const auto& [mask, val] : map_dp) {
+                if (val == 0.0) continue;
+
+                if (v_next_bit != -1) {
+                    uint64_t nmask = 0;
+                    if (project_mask(mask, nmask)) {
+                        nmask |= (1ULL << v_next_bit);
+                        next_dp[nmask] += val;
+                    }
+                }
+
+                for (const auto& [ub, w] : back_nbrs) {
+                    if ((mask >> ub) & 1ULL) {
+                        uint64_t cleared = mask & ~(1ULL << ub);
+                        uint64_t nmask = 0;
+                        if (project_mask(cleared, nmask)) {
+                            next_dp[nmask] += val * w;
+                        }
+                    }
+                }
+            }
+            map_dp = std::move(next_dp);
         }
 
-        dp = std::move(next_dp);
         frontier = std::move(next_frontier);
     }
 
-    if (max_frontier_out) *max_frontier_out = max_f;
-    auto it = dp.find(0);
-    return (it != dp.end()) ? it->second : 0.0;
+    if (use_flat) {
+        return flat_dp.empty() ? 0.0 : flat_dp[0];
+    }
+    auto it = map_dp.find(0);
+    return (it != map_dp.end()) ? it->second : 0.0;
 }
 
-// Solve Hafnian with connected-component factorization, degree-1 peeling,
-// degree-2 series contraction, and Min-Frontier DP.
-double sparse_hafnian(const Matrix& A_in, int* max_frontier_out = nullptr) {
-    int n = static_cast<int>(A_in.size());
-    if (n == 0) return 1.0;
-    if (n % 2 != 0) return 0.0;
+double min_frontier_dp(const SparseGraph& g, int* max_frontier_out = nullptr) {
+    int fw = 0;
+    std::vector<int> order = compute_min_frontier_order(g, &fw);
+    if (max_frontier_out) *max_frontier_out = fw;
+    return min_frontier_dp_with_order(g, order, fw);
+}
 
-    // Build mutable adjacency list (ignoring diagonal)
-    std::vector<std::vector<std::pair<int, double>>> adj(n);
-    std::vector<bool> active(n, true);
-    for (int i = 0; i < n; ++i) {
-        for (int j = i + 1; j < n; ++j) {
-            if (A_in[i][j] != 0.0) {
-                adj[i].emplace_back(j, A_in[i][j]);
-                adj[j].emplace_back(i, A_in[i][j]);
-            }
-        }
-    }
+// Recursive solver with degree-0/1/2 reductions, connected-component factorization,
+// Cascade-Branching on min-degree-3 vertices when (fw > fw_thresh || n > n_thresh),
+// OpenMP task parallelism, and Min-Frontier DP (flat-array for fw <= 14).
+double solve_graph_recursive(
+    std::vector<std::vector<std::pair<int, double>>> adj,
+    std::vector<bool> active,
+    int depth,
+    int* max_frontier_out,
+    int fw_thresh,
+    int n_thresh) {
+    int n = static_cast<int>(adj.size());
 
     auto remove_edge = [&](int u, int v) {
         auto& au = adj[u];
@@ -319,14 +361,11 @@ double sparse_hafnian(const Matrix& A_in, int* max_frontier_out = nullptr) {
                 double b = adj[v][1].second;
 
                 // Contract u, v, w into u (removing v and w)
-                // Remove edge (u, w) if present, since matching u-w isolates v
                 remove_edge(u, w);
                 remove_edge(w, u);
                 remove_vertex(v);
 
-                // Collect neighbors of w (excluding u, v)
                 auto w_nbrs = adj[w];
-                // Existing edges of u get multiplied by b
                 for (auto& [x, ux_w] : adj[u]) {
                     ux_w *= b;
                     for (auto& [y, xy_w] : adj[x]) {
@@ -336,7 +375,6 @@ double sparse_hafnian(const Matrix& A_in, int* max_frontier_out = nullptr) {
                         }
                     }
                 }
-                // Add a * w_x for each neighbor x of w
                 for (const auto& [x, wx_w] : w_nbrs) {
                     add_or_update_edge(u, x, a * wx_w);
                 }
@@ -384,14 +422,126 @@ double sparse_hafnian(const Matrix& A_in, int* max_frontier_out = nullptr) {
                 }
             }
         }
-        int comp_f = 0;
-        factor *= min_frontier_dp(sg, &comp_f);
+
+        int fw = 0;
+        std::vector<int> order = compute_min_frontier_order(sg, &fw);
+        double comp_val = 0.0;
+        int comp_f = fw;
+
+        if (fw > fw_thresh || cn > n_thresh) {
+            // Cascade-Branching on min-degree-3 vertex u and its min-degree neighbor v
+            int best_u = -1;
+            int min_deg = 1e9;
+            for (int u = 0; u < cn; ++u) {
+                int d = static_cast<int>(sg.adj[u].size());
+                if (d >= 3 && d < min_deg) {
+                    min_deg = d;
+                    best_u = u;
+                }
+            }
+            if (best_u == -1) {
+                comp_val = min_frontier_dp_with_order(sg, order, fw);
+            } else {
+                int best_v = sg.adj[best_u][0].first;
+                double w_uv = sg.adj[best_u][0].second;
+                int min_v_deg = static_cast<int>(sg.adj[best_v].size());
+                for (const auto& [nbr, ew] : sg.adj[best_u]) {
+                    int nd = static_cast<int>(sg.adj[nbr].size());
+                    if (nd < min_v_deg) {
+                        min_v_deg = nd;
+                        best_v = nbr;
+                        w_uv = ew;
+                    }
+                }
+
+                // Branch 1: A_{u, v deleted}
+                auto adj1 = sg.adj;
+                std::vector<bool> active1(cn, true);
+                auto rem_edge_in = [](std::vector<std::vector<std::pair<int, double>>>& g_adj, int a, int b) {
+                    auto& aa = g_adj[a];
+                    for (size_t idx = 0; idx < aa.size(); ++idx) {
+                        if (aa[idx].first == b) {
+                            aa[idx] = aa.back();
+                            aa.pop_back();
+                            break;
+                        }
+                    }
+                };
+                auto rem_vert_in = [&](std::vector<std::vector<std::pair<int, double>>>& g_adj, std::vector<bool>& g_act, int x) {
+                    g_act[x] = false;
+                    for (const auto& [y, ew] : g_adj[x]) {
+                        rem_edge_in(g_adj, y, x);
+                    }
+                    g_adj[x].clear();
+                };
+                rem_vert_in(adj1, active1, best_u);
+                rem_vert_in(adj1, active1, best_v);
+
+                // Branch 2: A_{edge (u, v) deleted}
+                auto adj2 = sg.adj;
+                std::vector<bool> active2(cn, true);
+                rem_edge_in(adj2, best_u, best_v);
+                rem_edge_in(adj2, best_v, best_u);
+
+                double r1 = 0.0, r2 = 0.0;
+                int f1 = 0, f2 = 0;
+                if (depth < 4) {
+                    #pragma omp task shared(r1, f1) firstprivate(adj1, active1)
+                    {
+                        r1 = solve_graph_recursive(std::move(adj1), std::move(active1), depth + 1, &f1, fw_thresh, n_thresh);
+                    }
+                    r2 = solve_graph_recursive(std::move(adj2), std::move(active2), depth + 1, &f2, fw_thresh, n_thresh);
+                    #pragma omp taskwait
+                } else {
+                    r1 = solve_graph_recursive(std::move(adj1), std::move(active1), depth + 1, &f1, fw_thresh, n_thresh);
+                    r2 = solve_graph_recursive(std::move(adj2), std::move(active2), depth + 1, &f2, fw_thresh, n_thresh);
+                }
+                comp_val = w_uv * r1 + r2;
+                comp_f = std::max(f1, f2);
+            }
+        } else {
+            comp_val = min_frontier_dp_with_order(sg, order, fw);
+        }
+
+        factor *= comp_val;
         max_f = std::max(max_f, comp_f);
         if (factor == 0.0) return 0.0;
     }
 
     if (max_frontier_out) *max_frontier_out = max_f;
     return factor;
+}
+
+// Solve Hafnian with connected-component factorization, degree-1 peeling,
+// degree-2 series contraction, Cascade-Branching, and Min-Frontier DP.
+double sparse_hafnian(const Matrix& A_in, int* max_frontier_out = nullptr, int fw_thresh = 11, int n_thresh = 24) {
+    int n = static_cast<int>(A_in.size());
+    if (n == 0) return 1.0;
+    if (n % 2 != 0) return 0.0;
+
+    // Build mutable adjacency list (ignoring diagonal)
+    std::vector<std::vector<std::pair<int, double>>> adj(n);
+    std::vector<bool> active(n, true);
+    for (int i = 0; i < n; ++i) {
+        for (int j = i + 1; j < n; ++j) {
+            if (A_in[i][j] != 0.0) {
+                adj[i].emplace_back(j, A_in[i][j]);
+                adj[j].emplace_back(i, A_in[i][j]);
+            }
+        }
+    }
+
+    double ans = 0.0;
+    int max_f = 0;
+    #pragma omp parallel
+    {
+        #pragma omp single
+        {
+            ans = solve_graph_recursive(std::move(adj), std::move(active), 0, &max_f, fw_thresh, n_thresh);
+        }
+    }
+    if (max_frontier_out) *max_frontier_out = max_f;
+    return ans;
 }
 
 // Generate a random 3-regular graph (configuration model with rejection for simple graph)
@@ -446,8 +596,9 @@ int main() {
             double bf = brute_force_hafnian(A);
             double bf_loop = brute_force_loop_hafnian(A); // since diag=0, equals bf
             double sh = sparse_hafnian::sparse_hafnian(A);
+            double sh_cascade = sparse_hafnian::sparse_hafnian(A, nullptr, 1, 2); // force cascade-branching
             double denom = std::max(1.0, std::abs(bf));
-            double rel_err = std::abs(bf - sh) / denom;
+            double rel_err = std::max(std::abs(bf - sh), std::abs(bf - sh_cascade)) / denom;
             max_rel_err = std::max(max_rel_err, rel_err);
             if (std::abs(bf - bf_loop) / denom > 1e-12) {
                 std::cerr << "Mismatch between brute_force_hafnian and brute_force_loop_hafnian!\n";
@@ -461,8 +612,8 @@ int main() {
         }
     }
 
-    std::cout << "\n=== Benchmark on 3-Regular Graphs (n = 24, 28, 32, 36) ===\n";
-    for (int n : {24, 28, 32, 36}) {
+    std::cout << "\n=== Benchmark on 3-Regular Graphs (n = 24..60, OpenMP threads = " << omp_get_max_threads() << ") ===\n";
+    for (int n : {24, 28, 32, 36, 40, 44, 48, 52, 56, 60}) {
         double total_ms = 0.0;
         int max_f = 0;
         double last_val = 0.0;
