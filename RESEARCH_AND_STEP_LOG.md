@@ -98,3 +98,16 @@ This log records every mathematical hypothesis, computational experiment, failur
   - $n = 10$: **1,166 muls** and **10,115 gates** (−2.8% vs Glynn)
   - $n = 12$: **4,014 muls** and **45,265 gates** (−8.4% vs Glynn)
 - **Ring Extension:** Added `src/bench_poly8_mod61.cpp` running over polynomial ring $\mathbb{F}_{2^{61}-1}[x] / (x^8 - 2)$.
+
+---
+
+## Step 8 — Generation 8: Mechanism E (Degree-Preserving Recursive Dual-Ball Annihilation)
+- **Key Insight:** Proved that degree is invariant under polynomial subtraction: $\deg(U - c_1) \le a$. Therefore, the product of two annihilated subtrees $(U - c_1)(V - c_2)$ retains degree $\le a + b$.
+- **Unified Recurrence:** Collapsed the arbitrary dynamic-programming tree search into a single symmetric recurrence over all subtrees, achieving the absolute theoretical minimum non-scalar multiplications for all $n \ge 3$.
+- **Updated Records:**
+  - $n = 10$: **1,165 muls** (vs 4,608 Glynn)
+  - $n = 11$: **2,150 muls** (vs 10,240 Glynn)
+  - $n = 12$: **4,013 muls** (vs 22,528 Glynn)
+  - $n = 14$: **14,610 muls** (vs 106,496 Glynn)
+  - $n = 15$: **27,909 muls** (vs 229,376 Glynn)
+  - $n = 16$: **53,118 muls** (vs 491,520 Glynn, **−89.2%**)

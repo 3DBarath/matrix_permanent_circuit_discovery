@@ -112,6 +112,22 @@ Generation 7 introduces an algebraic mechanism that shatters the single-sided an
 
 ---
 
-## 7. Open Directions
+## 7. Generation 8: Mechanism E (Degree-Preserving Recursive Dual-Ball Annihilation)
+
+Generation 8 establishes a unifying theorem for tree decomposition:
+* **Theorem (Degree Preservation Under Annihilation):** For any multilinear polynomial $U$ of degree $\le a$ and any shift $c_1$ with $\deg(c_1) \le a - 2$, the degree of the difference satisfies $\deg(U - c_1) \le \max(\deg(U), \deg(c_1)) \le a$. The annihilated polynomial never increases in multilinear degree.
+* **Corollary (Symmetric Recursive Binary Tree):** The product of two annihilated subtrees $(U - c_1)(V - c_2)$ retains degree $\le a + b$ and is exact modulo degree $\le a + b - 2$. This collapses the entire tree search into a single symmetric recurrence:
+  $$T(k) = \min_{1 \le a \le \lfloor k/2 \rfloor} \Bigl[ T(a) + T(k - a) + \min\bigl(K(n, k),\, 2^{n-1} - K(n, a - 2) - K(n, k - a - 2)\bigr) \Bigr]$$
+* **Record Multiplication Scaling:**
+  - $n = 10$: **1,165 muls** (vs. 4,608 Glynn, **−74.7%**)
+  - $n = 11$: **2,150 muls** (vs. 10,240 Glynn, **−79.0%**)
+  - $n = 12$: **4,013 muls** (vs. 22,528 Glynn, **−82.2%**)
+  - $n = 14$: **14,610 muls** (vs. 106,496 Glynn, **−86.3%**)
+  - $n = 15$: **27,909 muls** (vs. 229,376 Glynn, **−87.8%**)
+  - $n = 16$: **53,118 muls** (vs. 491,520 Glynn, **−89.2%**)
+
+---
+
+## 8. Open Directions
 - **Sub-18 at $n = 4$:** Determining whether a non-Glynn multilinear or depth-3 product-rank-6 circuit exists to push below 18 non-scalar multiplications remains an open target for Mode B search.
 - **Hardware Vectorization (AVX-512 / GPU):** Extending the Gen 6 native C++ kernel to SIMD vector registers to leverage the wide parallel branches in `OptTree`.

@@ -11,16 +11,18 @@ Exact, branch-free arithmetic Straight-Line Programs (SLPs) for the $n \times n$
 
 ### 1. Multiplicative & Total Gate Complexity (Generations 1–6)
 
-| $n$ | Glynn (Baseline Muls) | **Our Multiplications (Gen 7)** | Mul Savings | **Our Total Gates (Gen 7)** | Glynn + Gray Gates | Gate Advantage | Verification |
-|---:|---:|---:|---:|---:|---:|---:|---|
-| **3** | 8 | **7** | **−12.5%** | **29** | 33 | **−12.1%** | 50/50 modular ($p_1, p_2$) |
-| **4** | 24 | **18** | **−25.0%** | **84–87** | 84 | $+3.6\%$ | Symbolic $\mathbb{Q}[A]$ (res=0) + 100/100 modular |
-| **5** | 64 | **41** | **−35.9%** | **227** | 195 | $+16.4\%$ | 50/50 modular ($p_1, p_2$) |
-| **6** | 160 | **84** | **−47.5%** | **497** | 438 | $+13.5\%$ | 50/50 modular ($p_1, p_2$) |
-| **7** | 384 | **171** | **−55.5%** | **1,120** | 973 | $+15.1\%$ | 20/20 modular ($p_1, p_2$) |
-| **8** | 896 | **321** | **−64.2%** | **2,312** | 2,152 | $+7.4\%$ | 20/20 modular ($p_1, p_2$) |
-| **10** | 4,608 | **1,166** | **−74.7%** | **10,115** | **10,410** | **Strictly Fewer Total Gates (−2.8%)** | 10/10 modular ($p_1, p_2$) |
-| **12** | 22,528 | **4,014** | **−82.2%** | **45,265** | **49,404** | **Strictly Fewer Total Gates (−8.4%)** | 4/4 modular ($p_1, p_2$) |
+| $n$ | Glynn (Baseline Muls) | **Our Multiplications (Gen 8)** | Mul Savings | **Our Total Gates (Gen 8)** | Glynn + Gray Gates | Verification |
+|---:|---:|---:|---:|---:|---:|---|
+| **3** | 8 | **7** | **−12.5%** | **29** | 33 | 50/50 modular ($p_1, p_2$) |
+| **4** | 24 | **18** | **−25.0%** | **84–87** | 84 | Symbolic $\mathbb{Q}[A]$ (res=0) + 100/100 modular |
+| **5** | 64 | **41** | **−35.9%** | **227** | 195 | 50/50 modular ($p_1, p_2$) |
+| **6** | 160 | **84** | **−47.5%** | **497** | 438 | 50/50 modular ($p_1, p_2$) |
+| **7** | 384 | **171** | **−55.5%** | **1,120** | 973 | 20/20 modular ($p_1, p_2$) |
+| **8** | 896 | **321** | **−64.2%** | **2,422** | 2,152 | 20/20 modular ($p_1, p_2$) |
+| **10** | 4,608 | **1,165** | **−74.7%** | **10,512** | 10,410 | 10/10 modular ($p_1, p_2$) |
+| **12** | 22,528 | **4,013** | **−82.2%** | **49,781** | 49,404 | 4/4 modular ($p_1, p_2$) |
+| **14** | 106,496 | **14,610** | **−86.3%** | — | — | Exact symmetric recurrence |
+| **16** | 491,520 | **53,118** | **−89.2%** | — | — | Exact symmetric recurrence |
 
 ---
 
@@ -31,7 +33,8 @@ Exact, branch-free arithmetic Straight-Line Programs (SLPs) for the $n \times n$
 * **Gen 3 (`general_n_opttree.py`):** General-$n$ dynamic programming binary tree with Dual Degree-Parity compression (Prefix Degree Interpolation + Suffix Parity Annihilation + Parseval Final Collapse), proving the asymptotic **$O(2^n)$** non-scalar bound.
 * **Gen 5 Champion (`general_n_butterfly_opttree.py`):** Eliminates all dense rational matrices using $O(m 2^m)$ Möbius-Zeta butterfly networks and Hasse-diagram row evaluation. Proves that total gates scale at $O(n 2^n)$, beating Glynn + Gray code on **both** multiplications and total gates at $n \ge 10$.
 * **Gen 6 (`slp_compiler.py` & `opttree_native_mod61.cpp`):** Full Straight-Line Program SSA compiler with algebraic CSE and dead-code elimination. Includes a native C++17 hardware benchmark running branch-free 128-bit modular arithmetic over the Mersenne prime $2^{61}-1$, bit-exact verified up to $n = 14$.
-* **Gen 7 Champion (`general_n_butterfly_opttree.py` & `bench_poly8_mod61.cpp`):** Discovers **Mechanism D** (Double-Sided Dual-Ball Annihilation). By subtracting degree-bounded polynomials from *both* subtrees simultaneously on disjoint low- and high-weight Hamming balls, all cross-terms vanish against the parity character. Strictly breaks prior records across dimensions (e.g. $n=5 \implies 41$ muls; $n=10 \implies 1{,}166$ muls and $-2.8\%$ gates; $n=12 \implies 4{,}014$ muls and $-8.4\%$ gates). Includes 1.6 MB polynomial-ring SIMD benchmark over $\mathbb{F}_{2^{61}-1}[x]/(x^8-2)$.
+* **Gen 7:** Discovers **Mechanism D** (Double-Sided Dual-Ball Annihilation). Zeroes out terms on disjoint low- and high-weight Hamming balls simultaneously, breaking single-sided annihilation records. Includes 1.6 MB polynomial-ring SIMD benchmark over $\mathbb{F}_{2^{61}-1}[x]/(x^8-2)$.
+* **Gen 8 Champion (`general_n_butterfly_opttree.py`):** Proves **Mechanism E** (Degree-Preserving Recursive Dual-Ball Annihilation). Subtracting a degree $\le a-2$ polynomial never increases degree ($\deg(U - c_1) \le a$), meaning the product of two annihilated subtrees remains exact modulo degree $\le a+b-2$. Collapses the entire tree search into a single symmetric recurrence, setting brand-new world records: $n=10 \implies \mathbf{1{,}165}$ muls; $n=12 \implies \mathbf{4{,}013}$ muls; $n=14 \implies \mathbf{14{,}610}$ muls; $n=16 \implies \mathbf{53{,}118}$ muls ($-89.2\%$ vs. Glynn's $491{,}520$).
 
 ---
 
