@@ -537,6 +537,7 @@ static uint64_t eval_leaves_gpu(const std::vector<CpuLeaf>& leaves) {
             }
         }
         for (int c = 0; c < n; ++c) h_last_use.push_back(lu[c]);
+        h_last_use.push_back(-1); // pad to match row_offset stride (n + 1)
 
         for (int step = 0; step < n; ++step) {
             h_row_ptr.push_back((int)h_col_idx.size());
