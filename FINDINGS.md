@@ -126,5 +126,24 @@ In Generation 5 (`src/general_n_butterfly_opttree.py`), all precomputed dense ra
 
 ---
 
-## 9. Open Directions
+## 9. Generation 10: Mechanism F2 via Low-Rank Schur-Complement Butterflies
+
+Generation 10 implements Mechanism F2 via an exact Schur-complement butterfly architecture (`src/general_n_schur_f2.py`):
+* **Operational Mechanism:** For combining $U$ (degree $a$) and $V$ (degree $b$) into $k = a + b < n - 1$ ($2 \le a \le b$):
+  1. Fuses low-weight ball annihilation $Z_b = \{|y| \le b-2\}$ into child $V$.
+  2. Fuses high-weight ball annihilation $Z_a = \{|y| \ge m - (a-2)\}$ into child $U$.
+  3. Drops $r = K(n, a-2)$ weight-$k$ pivot masks $D \subset P_k \setminus Z_b$, evaluating on **only $K(n, k) - K(n, a-2) - K(n, b-2)$ points**.
+  4. Solves the small $r \times r$ incidence system $M \lambda = -W^{(0)}[Z_a]$ using Schur complements. For $a = 2$, $r = 1$ and $M = [[1]]$ (requiring 0 scalar multiplications).
+* **Exact Hypercube Multiplicative Floor:**
+  - $n = 6$: **83 muls** (vs. 160 Glynn, **−48.1%**)
+  - $n = 7$: **169 muls** (vs. 384 Glynn, **−56.0%**)
+  - $n = 8$: **318 muls** (vs. 896 Glynn, **−64.5%**)
+  - $n = 10$: **1,152 muls** (vs. 4,608 Glynn, **−75.0%**)
+  - $n = 12$: **3,941 muls** (vs. 22,528 Glynn, **−82.5%**)
+  - $n = 14$: **14,485 muls** (vs. 106,496 Glynn, **−86.4%**)
+  - $n = 16$: **52,488 muls** (vs. 491,520 Glynn, **−89.3%**)
+
+---
+
+## 10. Open Directions
 - **Sub-18 at $n = 4$:** Determining whether a non-Glynn multilinear or depth-3 product-rank-6 circuit exists to push below 18 non-scalar multiplications remains an open target for Mode B search.

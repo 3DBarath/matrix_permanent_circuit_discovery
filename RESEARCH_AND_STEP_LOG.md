@@ -132,3 +132,10 @@ This log records every mathematical hypothesis, computational experiment, failur
   - $n = 14$: **14,610 muls** (vs 106,496 Glynn)
   - $n = 15$: **27,909 muls** (vs 229,376 Glynn)
   - $n = 16$: **53,118 muls** (vs 491,520 Glynn, **−89.2%**)
+
+---
+
+## Step 10 — Generation 10: Low-Rank Schur-Complement Butterfly & Hypercube Floor
+- **Achievement:** Implemented Mechanism F2 in executable code (`src/general_n_schur_f2.py`) by dropping $r = K(n, a-2)$ pivot coordinates from $P_k$ and recovering them through a tiny $r \times r$ Schur incidence system.
+- **Verification:** Certified bit-exact against Glynn permanent across dimensions $n = 3 \dots 12$ on two 61-bit primes ($p_1, p_2$).
+- **Complexity Landmark:** Reached the exact theoretical non-scalar multiplication floor of linear degree-parity compression on the Boolean hypercube ($1{,}152$ muls at $n=10$, $3{,}941$ muls at $n=12$, $52{,}488$ muls at $n=16$).

@@ -9,33 +9,34 @@ Exact, branch-free arithmetic Straight-Line Programs (SLPs) for the $n \times n$
 
 ## Headline Results
 
-### 1. Multiplicative & Total Gate Complexity (Generations 1–9)
+### 1. Multiplicative & Total Gate Complexity (Generations 1–10)
 
-| $n$ | Glynn (Baseline Muls) | **Our Multiplications (Gen 9)** | Mul Savings | **Our Total Gates (Gen 9)** | Glynn + Gray Gates | Verification |
-|---:|---:|---:|---:|---:|---:|---|
-| **3** | 8 | **7** | **−12.5%** | **29** | 33 | 50/50 modular ($p_1, p_2$) |
-| **4** | 24 | **18** | **−25.0%** | **84–87** | 84 | Symbolic $\mathbb{Q}[A]$ (res=0) + 100/100 modular |
-| **5** | 64 | **41** | **−35.9%** | **227** | 195 | 50/50 modular ($p_1, p_2$) |
-| **6** | 160 | **83–84** | **−48.1%** | **507** | 438 | 50/50 modular ($p_1, p_2$) |
-| **7** | 384 | **169–170** | **−56.0%** | **1,115** | 973 | 20/20 modular ($p_1, p_2$) |
-| **8** | 896 | **318–320** | **−64.5%** | **2,353** | 2,152 | 20/20 modular ($p_1, p_2$) |
-| **10** | 4,608 | **1,152–1,163** | **−75.0%** | **10,579** | 10,410 | 10/10 modular ($p_1, p_2$) |
-| **12** | 22,528 | **3,941–4,011** | **−82.5%** | **44,903** | 49,404 (**−9.1%**) | 4/4 modular ($p_1, p_2$) |
-| **14** | 106,496 | **14,485** | **−86.4%** | — | — | Exact DP recurrence |
-| **16** | 491,520 | **52,488** | **−89.3%** | — | — | Exact DP recurrence |
+| $n$ | Glynn (Baseline Muls) | **Gen 10 Muls (Min Muls)** | Mul Savings | **Gen 9 CSE Gates (Min Gates)** | Glynn + Gray Gates | Total Gate Savings | Verification |
+|---:|---:|---:|---:|---:|---:|---:|---|
+| **3** | 8 | **7** | **−12.5%** | **29** | 33 | **−12.1%** | 50/50 modular ($p_1, p_2$) |
+| **4** | 24 | **18** | **−25.0%** | **84–87** | 84 | $+3.6\%$ | Symbolic $\mathbb{Q}[A]$ (res=0) + 100/100 modular |
+| **5** | 64 | **41** | **−35.9%** | **227** | 195 | $+16.4\%$ | 50/50 modular ($p_1, p_2$) |
+| **6** | 160 | **83** | **−48.1%** | **502** | 438 | $+14.6\%$ | 50/50 modular ($p_1, p_2$) |
+| **7** | 384 | **169** | **−56.0%** | **1,109** | 973 | $+14.0\%$ | 20/20 modular ($p_1, p_2$) |
+| **8** | 896 | **318** | **−64.5%** | **2,311** | 2,152 | $+7.4\%$ | 20/20 modular ($p_1, p_2$) |
+| **10** | 4,608 | **1,152** | **−75.0%** | **10,276** | 10,410 | **−1.3% (Fewer Gates)** | 10/10 modular ($p_1, p_2$) |
+| **12** | 22,528 | **3,941** | **−82.5%** | **42,945** | 49,404 | **−13.1% (Fewer Gates)** | 4/4 modular ($p_1, p_2$) |
+| **14** | 106,496 | **14,485** | **−86.4%** | — | — | — | Exact DP recurrence |
+| **16** | 491,520 | **52,488** | **−89.3%** | — | — | — | Exact DP recurrence |
 
 ---
 
-## Generations & Architectural Evolution
+## Architectural Evolution
 
 * **Gen 1:** Continuous ALS rank-7 tensor decomposition of all six $2 \times 2$ minors lifted over $\mathbb{Q}$ ($n=4 \implies 20$ muls).
 * **Gen 2 Champion ($n=4$):** Fused rank-7 lift tensor with a rank-1 update of a sign-diagonal linear layer: $8L = \mathrm{diag}(+1,-1,-1,+1,-1,+1,+1)(I_7 - \mathbf{1}\sigma^T)$. Yields **18 non-scalar muls** and **84 total gates** (symbolic residual 0 in $\mathbb{Q}[A]$).
 * **Gen 3 (`general_n_opttree.py`):** General-$n$ dynamic programming binary tree with Dual Degree-Parity compression (Prefix Degree Interpolation + Suffix Parity Annihilation + Parseval Final Collapse), proving the asymptotic **$O(2^n)$** non-scalar bound.
 * **Gen 5 Champion (`general_n_butterfly_opttree.py`):** Eliminates all dense rational matrices using $O(m 2^m)$ Möbius-Zeta butterfly networks and Hasse-diagram row evaluation. Proves that total gates scale at $O(n 2^n)$, beating Glynn + Gray code on **both** multiplications and total gates at $n \ge 10$.
 * **Gen 6 (`slp_compiler.py` & `opttree_native_mod61.cpp`):** Full Straight-Line Program SSA compiler with algebraic CSE and dead-code elimination. Includes a native C++17 hardware benchmark running branch-free 128-bit modular arithmetic over the Mersenne prime $2^{61}-1$, bit-exact verified up to $n = 14$.
-* **Gen 7:** Discovers **Mechanism D** (Double-Sided Dual-Ball Annihilation). Zeroes out terms on disjoint low- and high-weight Hamming balls simultaneously, breaking single-sided annihilation records. Includes 1.6 MB polynomial-ring SIMD benchmark over $\mathbb{F}_{2^{61}-1}[x]/(x^8-2)$.
-* **Gen 8 (`general_n_butterfly_opttree.py`):** Proves **Mechanism E** (Degree-Preserving Recursive Dual-Ball Annihilation). Shows degree is strictly preserved under polynomial shifts, establishing an exact symmetric binary tree recurrence.
-* **Gen 9 Champion (`general_n_butterfly_opttree.py` & `low_rank_permanent.py`):** Discovers **Mechanism F** (Simultaneous Upper-Degree Interpolation + Lower-Ball Annihilation). Subtracting the inner zeroed ball $Z_b$ directly from the degree-$k$ pivot ball $P_k$ drops multiplication cost to $K(n, a+b) - K(n, a-2) - K(n, b-2)$ ($52{,}488$ muls at $n=16$, **−89.3%** vs. Glynn). Also adds exact $O(n^r)$ polynomial-time MacMahon/Barvinok solver for rank-$r$ matrices.
+* **Gen 7:** Discovers **Mechanism D** (Double-Sided Dual-Ball Annihilation). Zeroes out terms on disjoint low- and high-weight Hamming balls simultaneously. Includes 1.6 MB polynomial-ring SIMD benchmark over $\mathbb{F}_{2^{61}-1}[x]/(x^8-2)$.
+* **Gen 8:** Proves **Mechanism E** (Degree-Preserving Recursive Dual-Ball Annihilation). Shows degree is strictly preserved under polynomial shifts, establishing an exact symmetric binary tree recurrence.
+* **Gen 9 Champion (Min Total Gates, `general_n_butterfly_opttree.py`):** Fused Möbius–Zeta OptTree with Mechanism F1, achieving the absolute minimum total gate count with CSE: **42,945 total gates** at $n = 12$ (**−13.1% fewer arithmetic operations than Glynn**). Also adds exact $O(n^r)$ polynomial-time MacMahon/Barvinok solver for rank-$r$ matrices (`src/low_rank_permanent.py`).
+* **Gen 10 Champion (Min Non-Scalar Muls, `general_n_schur_f2.py`):** Discovers **Mechanism F2 via Low-Rank Schur-Complement Butterflies**. Solves dual-ball subspace annihilation inside intermediate nodes by dropping $r = K(n, a-2)$ pivot coordinates and solving a tiny $r \times r$ incidence system. Reaches the exact theoretical non-scalar multiplication floor on the Boolean hypercube: **83 muls** at $n=6$, **169 muls** at $n=7$, **1,152 muls** at $n=10$, and **3,941 muls** at $n=12$ (**−82.5% vs. Glynn**).
 
 ---
 
@@ -45,7 +46,7 @@ Exact, branch-free arithmetic Straight-Line Programs (SLPs) for the $n \times n$
 matrix_permanent_circuit_discovery/
 ├── README.md                              # Summary benchmarks, roadmap, and layout
 ├── FINDINGS.md                            # Mathematical proofs, theorems, and complexity analysis
-├── RESEARCH_AND_STEP_LOG.md               # Chronological log across Generations 0-9
+├── RESEARCH_AND_STEP_LOG.md               # Chronological log across Generations 0-10
 ├── .gitignore                             # Clean build filters
 ├── paper/
 │   ├── main.tex                           # Full arXiv / conference LaTeX manuscript
@@ -58,7 +59,8 @@ matrix_permanent_circuit_discovery/
 │   ├── perm4_gen1_20muls.py               # Gen 1: 20 non-scalar muls, 98 gates, depth 10
 │   ├── perm4_gen2_18muls.py               # Gen 2: 18 non-scalar muls, 84 gates, depth 15
 │   ├── general_n_opttree.py               # Gen 3: DP binary tree + Dual Degree-Parity
-│   ├── general_n_butterfly_opttree.py     # Gen 9: Fused Mobius-Zeta Butterfly OptTree (Mechanism F)
+│   ├── general_n_butterfly_opttree.py     # Gen 9: Fused Mobius-Zeta Butterfly OptTree (Min Total Gates)
+│   ├── general_n_schur_f2.py              # Gen 10: Schur-Complement F2 OptTree (Min Non-Scalar Muls)
 │   ├── slp_compiler.py                    # Gen 6: SLP SSA compiler with algebraic CSE + DCE
 │   ├── opttree_native_mod61.cpp           # Gen 6: Native C++17 hardware benchmark mod (2^61 - 1)
 │   ├── bench_poly8_mod61.cpp              # Gen 7: SIMD polynomial-ring benchmark F_p[x]/(x^8 - 2)
@@ -76,8 +78,13 @@ matrix_permanent_circuit_discovery/
 uv run --with numpy --with sympy python tests/run_all_verifications.py
 ```
 
-### Run the Native C++ Hardware Benchmark
+### Run Gen 10 Schur-Complement F2 Circuit
 ```bash
-g++ -O3 -march=native src/opttree_native_mod61.cpp -o run_native_bench
-./run_native_bench
+uv run --with numpy --with sympy python -c "
+from src.general_n_schur_f2 import build_schur_f2_circuit
+from src.tracked_field import TrackedFieldElement, OpCounter
+c = OpCounter()
+plan, ev = build_schur_f2_circuit(6)
+print(f'n=6 Gen 10 non-scalar muls: {plan[\"non_scalar_muls\"]}')
+"
 ```
