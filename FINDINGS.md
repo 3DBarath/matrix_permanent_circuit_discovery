@@ -167,3 +167,8 @@ Generation 10 implements Mechanism F2 via an exact Schur-complement butterfly ar
   - Sparse Hafnian with Cascade-Branching + OpenMP: `n=60` in **1.510 ms** (`max_frontier=11`, `max_rel_err <= 3.36e-16` at `n=4..10`).
   - CUDA Shared-Memory DP (`32 KB` on-chip for `fw <= 11`): `n=72` in **19.04 s** on Tesla T4.
 - **Lean 4 + Mathlib4 Verified (`lean/PermanentProofs.lean`):** `perm_degree2_row_cofactor_collapse` (over arbitrary `[CommRing R]` using `Matrix.permanent` and `Matrix.submatrix`) typechecked cleanly in Google Colab with zero `sorry`s.
+- **Gen 18 (Or-Opt 4-Reg, Hafnian $n=72$, Perm4 CUDA, CUDA Warp Opt):**
+  - 4-Regular Or-Opt (`src/sparse_permanent.cpp --4reg`, all `GLYNN PASS`): `n=16` (`1552 -> 1092`, `-29.6%`), `n=20` (`8701.7 -> 6106.3`, `-29.8%`), `n=24` (`27178.7 -> 20180.0`, `-25.7%`), `n=28` (`210275.0 -> 133135.0`, `-36.7%`, `5.54 ms`).
+  - Sparse Hafnian (`src/sparse_hafnian.cpp`): 3-regular `n=60` (`0.953 ms`), `n=64` (`2.447 ms`), `n=68` (`3.501 ms`), **`n=72` (`5.086 ms`)**; 4-regular `n=24` (`0.117 ms`).
+  - `colab/perm4_17mul_search.cu`: 64-lane bit-sliced $\mathbb{F}_3/\mathbb{F}_5$ CUDA search for 17-mul $\mathrm{Perm}_4$.
+  - `colab/sparse_permanent_cuda.cu`: `__launch_bounds__(256)` + atomic-free bijective dead-column compression.
