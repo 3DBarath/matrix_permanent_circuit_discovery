@@ -161,3 +161,4 @@ Generation 10 implements Mechanism F2 via an exact Schur-complement butterfly ar
   - `src/sparse_hafnian.cpp`: Exact sub-$2^n$ Hafnian solver ($n=36$ in 0.138 ms, `max_rel_err <= 3.2e-16`).
   - `colab/sparse_permanent_cuda.cu`: Google Colab CUDA kernel with `fw <= MAX_GPU_FW` guard.
   - `lean/PermanentProofs.lean`: Lean 4 / Mathlib4 formalizations.
+- **CUDA Tesla T4 Verified (`colab/sparse_permanent_cuda.cu`):** `n=32` in 0.65 ms, `n=40` in 0.93 ms, `n=48` in 4.54 ms, `n=56` in 72.55 ms (5/5 Glynn self-tests PASS). Extended to `n=64, 72`.

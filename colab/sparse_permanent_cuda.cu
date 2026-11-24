@@ -694,7 +694,7 @@ int main() {
 
     // 2. Benchmark on larger 3-regular weighted graphs
     std::printf("\n[Benchmark] 3-Regular Weighted Graphs:\n");
-    for (int n : {32, 40, 48, 56}) {
+    for (int n : {32, 40, 48, 56, 64, 72}) {
         auto M = gen_d_reg(n, 3, rng);
         uint64_t br = 0;
         auto t0 = std::chrono::high_resolution_clock::now();
