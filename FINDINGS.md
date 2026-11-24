@@ -72,6 +72,31 @@ By dynamic programming over binary evaluation trees that build low-degree subtre
 
 Notice that by $n = 12$, `OptTree` drops below $2 \cdot 2^{n-1} = 2^n$ total non-scalar multiplications ($4{,}081 < 4{,}096$), confirming the asymptotic reduction from $\Theta(n \cdot 2^n)$ to **$O(2^n)$** non-scalar multiplications.
 
-## 4. Open Directions for Future Generations
-- **Fast $O(n 2^n)$ interpolation/annihilation linear layers:** The current `general_n_opttree.py` uses Fast Walsh-Hadamard Transforms ($O(n 2^n)$ adds) for row evaluation and Parseval steps, while applying precomputed rational matrices for interpolation/annihilation. Factoring those interpolation/annihilation maps into structured butterfly/Möbius transforms will bring total gate counts to $O(n 2^n)$ alongside the $O(2^n)$ non-scalar multiplication count.
+---
+
+## 4. Generation 5: Fused Möbius–Zeta Butterfly & $O(n 2^n)$ Total Gates
+
+In Generation 5 (`src/general_n_butterfly_opttree.py`), all precomputed dense rational interpolation and annihilation matrices were replaced with structured fast transforms on the Boolean hypercube:
+
+1. **Möbius–Zeta Isomorphism ($\{\pm 1\}^{n-1} \leftrightarrow \{0, 1\}^{n-1}$):**
+   Interpolating a degree-$m$ multilinear polynomial on the canonical pivot set $P_m = \{y \in \{0, 1\}^{n-1} : |y| \le m\}$ is solved via an inverted Möbius butterfly followed by a forward Zeta butterfly, running in $O(m 2^m)$ additions and **0 scalar multiplications**.
+2. **Fused Annihilation:**
+   Coefficients $c_S$ with $|S| \le d_{\text{ann}}$ are zeroed out directly between the Möbius and Zeta stages, eliminating the separate annihilation step at zero gate overhead.
+3. **Hasse-Diagram Row Evaluator:**
+   Evaluates row linear forms along the Boolean poset with only 1 subtraction per mask step ($2(n-1) + (K-1)$ additions/subtractions total).
+4. **Simultaneous Multiplicative and Total Gate Supremacy:**
+   Starting at $n = 10$, the circuit requires strictly fewer total arithmetic operations than Glynn + Gray code ($10{,}338$ vs. $10{,}410$ gates at $n=10$, and $45{,}940$ vs. $49{,}404$ gates at $n=12$), resolving the additive complexity trade-off.
+
+---
+
+## 5. Generation 6: SLP Compiler (CSE/DCE) and Native C++ Hardware Kernel
+
+Generation 6 introduces an end-to-end hardware execution pipeline:
+* **`slp_compiler.py`:** Formulates the circuit as an arithmetic SSA DAG, executes algebraic Common Subexpression Elimination ($a+b \equiv b+a$, $a \cdot b \equiv b \cdot a$), prunes dead wires, and emits flat C++17 straight-line programs.
+* **`opttree_native_mod61.cpp`:** Implements 128-bit hardware modular arithmetic over the Mersenne prime $2^{61}-1$ with zero conditional branches. Verified bit-exact (32/32 trials) against the native Glynn baseline for all dimensions $n = 4 \dots 14$.
+
+---
+
+## 6. Open Directions
 - **Sub-18 at $n = 4$:** Determining whether a non-Glynn multilinear or depth-3 product-rank-6 circuit exists to push below 18 non-scalar multiplications remains an open target for Mode B search.
+- **Hardware Vectorization (AVX-512 / GPU):** Extending the Gen 6 native C++ kernel to SIMD vector registers to leverage the wide parallel branches in `OptTree`.

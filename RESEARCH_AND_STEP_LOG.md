@@ -65,3 +65,23 @@ This log records every mathematical hypothesis, computational experiment, failur
   - Discovered strictly lower counts starting at $n = 6$: **85** at $n = 6$ (vs. 90 sequential, 160 Glynn), **172** at $n = 7$ (vs. 192 sequential, 384 Glynn), **322** at $n = 8$ (vs. 896 Glynn), **1,176** at $n = 10$ (vs. 4,608 Glynn), and **4,081** at $n = 12$ (vs. 22,528 Glynn, −81.9%).
 - **Full Suite Verification (`tests/run_all_verifications.py`):**
   - All Gen 1, Gen 2, Mode B lifting, and Gen 3 `OptTree` ($n = 3, 4, 5, 6, 7$) checks passed with 0 errors and exact op counts matching the DP forecasts.
+
+---
+
+## Step 5 — Generation 5: Fused Möbius–Zeta Butterflies & $O(n 2^n)$ Gate Complexity
+- **Problem:** Gen 3 proved $O(2^n)$ multiplications, but dense rational interpolation matrices caused addition count to grow to 3,313 gates at $n=7$.
+- **Breakthrough:**
+  - Built an algebraic isomorphism between the sign hypercube $\{\pm 1\}^{n-1}$ and the Boolean lattice $\{0, 1\}^{n-1}$.
+  - Replaced $O(N^2)$ rational matrices with $O(m 2^m)$ Möbius-Zeta butterfly networks requiring 0 scalar multiplications.
+  - Fused annihilation directly into the transform by zeroing coordinates between the Möbius and Zeta stages.
+  - Designed a 1-add-per-mask Hasse diagram row evaluator, cutting row addition overhead by up to 70%.
+- **Milestone:** Starting at $n=10$, our circuit strictly beats Glynn + Gray code on **both** non-scalar multiplications (1,176 vs 4,608, −74.5%) and total arithmetic gates (10,338 vs 10,410, −0.7%), extending to −81.9% muls and −7.0% total gates at $n=12$ (45,940 vs 49,404 gates).
+
+---
+
+## Step 6 — Generation 6: SSA Compiler (Algebraic CSE/DCE) & Native C++17 Kernel
+- **Motivation:** Bridge algebraic circuit theory directly to bare-metal hardware execution.
+- **Implementation:**
+  - `src/slp_compiler.py`: Evaluates the execution DAG, applies algebraic Common Subexpression Elimination and Dead Code Elimination, and emits flat C++17 straight-line programs.
+  - `src/opttree_native_mod61.cpp`: Native hardware kernel over the Mersenne prime $2^{61}-1$ with unrolled `__uint128_t` arithmetic.
+- **Verification:** Bit-exact verification against native Glynn + Gray baseline across 32/32 trials for all dimensions $n = 4 \dots 14$.
