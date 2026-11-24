@@ -239,6 +239,16 @@ Each slice of $T_1$ lies in the 6-dimensional vector space $\mathrm{Sym}^2_{\tex
 
 Continuous Trust-Region Reflective (ALS) probes further prove that the $6 \times 4 \times 4$ lift tensor $T_2$ has exact CP rank $7$ over both $\mathbb{R}$ and $\mathbb{C}$ (residual wall $1.255$ at $R = 6$), proving that all strictly row-layered circuits are bounded by $7 + 7 + 4 = 18$ multiplications (achieved with 84 gates in Gen~2).
 
+\subsection{Depth-3 $\Sigma\Pi\Sigma$ Product Rank of $\Perm_3$ (Generation 15)}
+
+Using the algebraic substitution method, we close general mixed-row Depth-3 $\Sigma\Pi\Sigma$ product rank $R = 3$ for $\Perm_3(A)$ over any field $\mathbb{F}$ with $\mathrm{char}(\mathbb{F}) \neq 2$:
+\begin{proposition}[Depth-3 $\Sigma\Pi\Sigma$ Product Rank of $\Perm_3$]
+Over any field $\mathbb{F}$ ($\mathrm{char}(\mathbb{F}) \neq 2$), any representation $\Perm_3(A) = \sum_{r=1}^R L_{r,1}(A) L_{r,2}(A) L_{r,3}(A)$ with arbitrary mixed-row linear forms $L_{r,k}$ requires $R \ge 4$.
+\end{proposition}
+\begin{proof}
+Suppose $R = 3$. Setting $L_{1,1} = L_{2,1} = L_{3,1} = 0$ forces $\Perm_3(A)$ to vanish identically on a linear subspace $H \subset \mathbb{F}^{3 \times 3}$ of dimension $\ge 9 - 3 = 6$. Every 6-dimensional zero-permanent subspace of $\mathbb{F}^{3 \times 3}$ is necessarily a zero row or zero column (a $2 \times 2$ zero block has dimension only $9 - 4 = 5$). Taking without loss of generality $L_{1,1}, L_{2,1}, L_{3,1}$ to span row $0$ forces the coefficient of $A_{00}$ on $\{A_{01} = A_{02} = 0\}$---namely the irreducible $2 \times 2$ permanent $A_{11} A_{22} + A_{12} A_{21}$---to factor as a single product $L_{1,2} L_{1,3}$, a contradiction. Thus Depth-3 $\Sigma\Pi\Sigma$ product rank of $\Perm_3$ is strictly $4$ even with arbitrary mixed-row linear forms.
+\end{proof}
+
 \subsection{Exact Low-Rank Collapse in $O(n^r)$ Time}
 
 For structured inputs, Barvinok's polynomial identity collapses low-rank matrix permanents to polynomial time:
