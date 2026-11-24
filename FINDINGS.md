@@ -166,3 +166,4 @@ Generation 10 implements Mechanism F2 via an exact Schur-complement butterfly ar
 - **Gen 17 (`src/sparse_hafnian.cpp` & `colab/sparse_permanent_cuda.cu`):**
   - Sparse Hafnian with Cascade-Branching + OpenMP: `n=60` in **1.510 ms** (`max_frontier=11`, `max_rel_err <= 3.36e-16` at `n=4..10`).
   - CUDA Shared-Memory DP (`32 KB` on-chip for `fw <= 11`): `n=72` in **19.04 s** on Tesla T4.
+- **Lean 4 + Mathlib4 Verified (`lean/PermanentProofs.lean`):** `perm_degree2_row_cofactor_collapse` (over arbitrary `[CommRing R]` using `Matrix.permanent` and `Matrix.submatrix`) typechecked cleanly in Google Colab with zero `sorry`s.
