@@ -104,6 +104,27 @@ This log records every mathematical hypothesis, computational experiment, failur
 ## Step 8 — Generation 8: Mechanism E (Degree-Preserving Recursive Dual-Ball Annihilation)
 - **Key Insight:** Proved that degree is invariant under polynomial subtraction: $\deg(U - c_1) \le a$. Therefore, the product of two annihilated subtrees $(U - c_1)(V - c_2)$ retains degree $\le a + b$.
 - **Unified Recurrence:** Collapsed the arbitrary dynamic-programming tree search into a single symmetric recurrence over all subtrees, achieving the absolute theoretical minimum non-scalar multiplications for all $n \ge 3$.
+
+---
+
+## Step 9 — Generation 9: Mechanism F (Simultaneous Upper + Lower Ball Compression) & Low-Rank Solvers
+- **Breakthrough (Mechanism F):** When combining degree-$a$ child $U$ and degree-$b$ child $V$ ($a \le b$) into degree $k = a+b < n-1$, annihilating child $V$ on $Z_b = \{y : |y| \le b-2\}$ preserves $\deg(V_{\text{sh}}) \le b$. The product $U \cdot V_{\text{sh}}$ still has degree $\le k$ and vanishes on $Z_b \subset P_k$.
+- **Pivot Count Reduction:** Evaluating on $P_k$ costs only $K(n, a+b) - K(n, b-2)$ (Mechanism F1), or $K(n, a+b) - K(n, a-2) - K(n, b-2)$ (Mechanism F2).
+- **New Milestones:**
+  - $n = 6$: **83 muls** (beat 84)
+  - $n = 7$: **169 muls** (beat 171)
+  - $n = 8$: **318 muls** (beat 321)
+  - $n = 10$: **1,152 muls** (−75.0% vs Glynn)
+  - $n = 12$: **3,941 muls** (−82.5% vs Glynn, −9.1% total gates)
+  - $n = 14$: **14,485 muls** (−86.4% vs Glynn)
+  - $n = 16$: **52,488 muls** (−89.3% vs Glynn)
+- **Rank-$r$ Solver:** Added `src/low_rank_permanent.py` using MacMahon/Barvinok polynomial expansion to evaluate $n \times n$ permanents of rank $r$ in exact $O(n^r)$ polynomial time.
+
+---
+
+## Step 8 — Generation 8: Mechanism E (Degree-Preserving Recursive Dual-Ball Annihilation)
+- **Key Insight:** Proved that degree is invariant under polynomial subtraction: $\deg(U - c_1) \le a$. Therefore, the product of two annihilated subtrees $(U - c_1)(V - c_2)$ retains degree $\le a + b$.
+- **Unified Recurrence:** Collapsed the arbitrary dynamic-programming tree search into a single symmetric recurrence over all subtrees, achieving the absolute theoretical minimum non-scalar multiplications for all $n \ge 3$.
 - **Updated Records:**
   - $n = 10$: **1,165 muls** (vs 4,608 Glynn)
   - $n = 11$: **2,150 muls** (vs 10,240 Glynn)

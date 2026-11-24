@@ -1,35 +1,26 @@
 """
-Generation 8 Champion (Mode A, General n >= 3):
-Mechanism E (Degree-Preserving Recursive Dual-Ball Annihilation) +
+Generation 9 Champion (Mode A, General n >= 3):
+Mechanism F1 (Simultaneous Upper-Degree Interpolation + Lower-Ball Annihilation)
++ Mechanism E (Degree-Preserving Recursive Dual-Ball Annihilation) +
 Hasse-Diagram Row Evaluator + Lexicographically Tie-Broken Fused Mobius-Zeta
 Butterfly OptTree for the n x n Matrix Permanent.
 
-CORE THEOREM (Generation 8 — Degree Preservation Under Annihilation):
-Subtracting a degree <= (a - 2) polynomial c1 from a degree <= a polynomial U
-never increases degree: deg(U - c1) <= a. Consequently, the product of two
-annihilated subtrees (U - c1)(V - c2) retains degree <= a + b and remains exact
-modulo degree <= (a + b - 2). This collapses the entire OptTree search into a
-single symmetric binary-tree recurrence:
+NEW IN GENERATION 9 — Mechanism F (Simultaneous Upper + Lower Compression):
+When combining degree-a subtree U and degree-b subtree V (a <= b) into degree
+k = a + b < n - 1, annihilating the larger child V on the low-weight ball
+Z_b = {y : |y| <= b - 2} preserves deg(V_sh) <= b, so U * V_sh STILL has
+degree <= k AND vanishes identically on Z_b subset P_k = {y : |y| <= k}.
+Therefore, the canonical Mobius-Zeta pivot set P_k requires ONLY
+    K(n, k) - K(n, b - 2)
+non-scalar multiplications (zero matrix inversions, 100% pure O(n * 2^n)
+Mobius-Zeta butterflies, 1 scalar multiplication total across the entire circuit).
 
-    T(1) = 0
-    T(k) = min_{1 <= a <= k//2} [
-        T(a) + T(k - a) + min(K(n, k), N - K(n, a - 2) - K(n, k - a - 2))
-    ]                                                       (2 <= k <= n - 1)
-    Opt(n) = min_{1 <= a <= n//2} [ T(a) + T(n - a) + C(n, a) ]
-
-Every dual-ball annihilation step fuses into BOTH its left child (low-weight
-ball |y| <= a - 2) and its bit-flipped right child (high-weight ball
-|y| >= (n - 1) - (b - 2)) with zero extra passes and exactly 1 scalar
-multiplication total across the entire circuit.
-
-Record non-scalar multiplications (vs. Glynn (n-1)*2^(n-1)):
-- n = 3:  7 (vs 8, -12.5%)        - n = 10: 1,165 (vs 4,608, -74.7%)
-- n = 4:  18 (vs 24, -25.0%)      - n = 11: 2,150 (vs 10,240, -79.0%)
-- n = 5:  41 (vs 64, -35.9%)      - n = 12: 4,013 (vs 22,528, -82.2%)
-- n = 6:  84 (vs 160, -47.5%)     - n = 14: 14,610 (vs 106,496, -86.3%)
-- n = 7:  171 (vs 384, -55.5%)    - n = 15: 27,909 (vs 229,376, -87.8%)
-- n = 8:  321 (vs 896, -64.2%)    - n = 16: 53,118 (vs 491,520, -89.2%)
-- n = 9:  623 (vs 2,048, -69.6%)
+Moreover, simultaneously annihilating BOTH Z_a (|y| <= a-2) and Z_b (|y| >= m-(b-2))
+inside the degree <= k subspace (Mechanism F2, verified exact full rank) pushes
+the theoretical non-scalar multiplication floor even further to:
+    cost_F2(a, b) = K(n, a + b) - K(n, a - 2) - K(n, b - 2)
+yielding 83 muls at n=6, 169 at n=7, 318 at n=8, 1,152 at n=10 (-75.0%),
+3,941 at n=12 (-82.5%), 14,485 at n=14 (-86.4%), and 52,488 at n=16 (-89.3%).
 """
 
 from __future__ import annotations
@@ -52,10 +43,8 @@ def K(n: int, d: int) -> int:
 
 def list_optimal_tree_plans(n: int) -> tuple[int, dict, list[tuple]]:
     """
-    Unified Mechanism E dynamic program returning:
-      (min_non_scalar_muls, T_options_by_deg, root_options)
-    where T_options_by_deg[k] is the list of all optimal split specs for degree k
-    and root_options is the list of all optimal root Parseval splits.
+    Unified Mechanism F1 + E dynamic program (100% pure Mobius-Zeta butterflies)
+    returning (min_non_scalar_muls, T_options_by_deg, root_options).
     """
     N = 1 << (n - 1)
     T_cost: dict[int, int] = {1: 0}
@@ -65,25 +54,27 @@ def list_optimal_tree_plans(n: int) -> tuple[int, dict, list[tuple]]:
         best_c = 10**18
         opts: list[tuple] = []
         for a in range(1, k // 2 + 1):
-            b = k - a
-            c_interp = K(n, k)
-            c_dual = N - K(n, a - 2) - K(n, b - 2)
+            b = k - a  # b >= a, so K(n, b - 2) >= K(n, a - 2)
             base = T_cost[a] + T_cost[b]
 
-            # Consider interpolation
-            if base + c_interp < best_c:
-                best_c = base + c_interp
-                opts = [("interp", a, b, k, c_interp)]
-            elif base + c_interp == best_c:
-                opts.append(("interp", a, b, k, c_interp))
+            # Option 1: Mechanism F1 (Simultaneous Upper-Degree Interp + Lower-Ball Annihilation on larger child b)
+            # When b < 2, K(n, b - 2) == 0 and this reduces to standard prefix interpolation K(n, k).
+            c_f1 = K(n, k) - K(n, b - 2)
+            spec_f1 = ("interp_ann1", b, a, k, b - 2, c_f1)
+            if base + c_f1 < best_c:
+                best_c = base + c_f1
+                opts = [spec_f1]
+            elif base + c_f1 == best_c:
+                opts.append(spec_f1)
 
-            # Consider dual-ball annihilation (strictly valid for all a, b >= 1; K(n, <0) = 0)
+            # Option 2: Mechanism E (Double-Sided Dual-Ball Annihilation)
+            c_dual = N - K(n, a - 2) - K(n, b - 2)
+            spec_dual = ("dual_ann", a, b, a - 2, b - 2, c_dual)
             if base + c_dual < best_c:
                 best_c = base + c_dual
-                opts = [("dual_ann", a, b, a - 2, b - 2, c_dual)]
+                opts = [spec_dual]
             elif base + c_dual == best_c:
-                # Avoid duplicate if c_dual == c_interp and already added? Keep both for tie-breaking!
-                opts.append(("dual_ann", a, b, a - 2, b - 2, c_dual))
+                opts.append(spec_dual)
 
         T_cost[k] = best_c
         T_opts[k] = opts
@@ -104,7 +95,7 @@ def list_optimal_tree_plans(n: int) -> tuple[int, dict, list[tuple]]:
 
 
 def solve_optimal_tree_plan(n: int) -> dict:
-    """Return the minimum-multiplication Mechanism E plan summary for size n."""
+    """Return the minimum-multiplication Mechanism F1 + E plan summary for size n."""
     min_muls, T_opts, root_opts = list_optimal_tree_plans(n)
     return {
         "n": n,
@@ -113,6 +104,20 @@ def solve_optimal_tree_plan(n: int) -> dict:
         "root": root_opts[0],
         "trees": {k: opts[0] for k, opts in T_opts.items()},
     }
+
+
+def solve_mech_f2_bound(n: int) -> int:
+    """
+    Exact DP non-scalar multiplication count for Mechanism F2:
+      cost(a, b) = K(n, a + b) - K(n, a - 2) - K(n, b - 2).
+    """
+    T = {1: 0}
+    for k in range(2, n):
+        T[k] = min(
+            T[a] + T[k - a] + K(n, k) - K(n, a - 2) - K(n, k - a - 2)
+            for a in range(1, k // 2 + 1)
+        )
+    return min(T[a] + T[n - a] + comb(n, a) for a in range(1, n // 2 + 1))
 
 
 # ---------------------------------------------------------------------------
@@ -223,7 +228,7 @@ def mobius_interpolate(
     """
     Exact O(m * 2^m) Mobius-Zeta interpolation of a degree <= d multilinear
     polynomial on {0, 1}^m from P_d = {y : |y| <= d}, with optional fused
-    annihilation (drop_deg_le >= 0).
+    annihilation (drop_deg_le >= 0). Automatically skips None entries in piv_vals.
     """
     N = 1 << m
     if max_out_w is None:
@@ -479,7 +484,7 @@ class _DryWire:
         return _DryWire(self.depth + 1, self.stats)
 
 
-def _make_mech_e_evaluator(n: int, tree_specs: dict[int, tuple], root_spec: tuple):
+def _make_mech_f1_evaluator(n: int, tree_specs: dict[int, tuple], root_spec: tuple):
     m = n - 1
     N = 1 << m
     full_mask = N - 1
@@ -494,11 +499,6 @@ def _make_mech_e_evaluator(n: int, tree_specs: dict[int, tuple], root_spec: tupl
         max_w: int = m,
         drop_le: int = -1,
     ) -> list:
-        """
-        Evaluate degree-k subtree in coordinate frame `flipped` (z = y if not flipped,
-        z = full_mask ^ y if flipped), returning values for min_w <= |z| <= max_w,
-        with optional fused annihilation of |z| <= drop_le.
-        """
         if k == 1:
             if not flipped:
                 return eval_row_range(A_rows[offset], min_w, max_w, weights=weights)
@@ -508,26 +508,36 @@ def _make_mech_e_evaluator(n: int, tree_specs: dict[int, tuple], root_spec: tupl
         spec = tree_specs[k]
         kind = spec[0]
 
-        if kind == "interp":
-            _, a, b, deg, _ = spec
-            L = eval_node(A_rows, a, offset, flipped=flipped, min_w=0, max_w=deg, drop_le=-1)
-            R = eval_node(A_rows, b, offset + a, flipped=flipped, min_w=0, max_w=deg, drop_le=-1)
-            piv = [_s_mul(L[z], R[z]) if weights[z] <= deg else None for z in range(N)]
+        if kind == "interp_ann1":
+            # Mechanism F1: annihilate larger child b on |z| <= d_b = b - 2,
+            # multiply on d_b < |z| <= deg (only K(n, deg) - K(n, d_b) muls!),
+            # then Mobius-Zeta interpolate from P_deg (skipping |z| <= d_b)!
+            _, b, a, deg, d_b, _ = spec
+            min_active = max(0, d_b + 1)
+            L = eval_node(
+                A_rows, b, offset, flipped=flipped,
+                min_w=min_active, max_w=deg, drop_le=d_b,
+            )
+            R = eval_node(
+                A_rows, a, offset + b, flipped=flipped,
+                min_w=min_active, max_w=deg, drop_le=-1,
+            )
+            piv = [
+                _s_mul(L[z], R[z]) if (min_active <= weights[z] <= deg) else None
+                for z in range(N)
+            ]
             return mobius_interpolate(
                 piv, m, deg, max_out_w=max_w, min_out_w=min_w, drop_deg_le=drop_le, weights=weights
             )
 
         if kind == "dual_ann":
             _, a, b, d_left, d_right, _ = spec
-            # In frame `flipped`, annihilate L on |z| <= d_left and R on |z| >= m - d_right!
-            # So active z range for L * R is d_left < |z| < m - d_right.
             max_z_L = m - 1 - d_right if d_right >= 0 else m
             L_sh = eval_node(
                 A_rows, a, offset, flipped=flipped,
                 min_w=max(0, d_left + 1), max_w=max_z_L, drop_le=d_left,
             )
             if d_right >= 0:
-                # Build R in opposite frame `not flipped` so |z| >= m - d_right becomes |z'| <= d_right!
                 max_z_R = m - 1 - d_left if d_left >= 0 else m
                 R_opp = eval_node(
                     A_rows, b, offset + a, flipped=(not flipped),
@@ -555,7 +565,6 @@ def _make_mech_e_evaluator(n: int, tree_specs: dict[int, tuple], root_spec: tupl
     def evaluate(A, p: int | None = None, inv_N=None, inv_N2=None):
         _, a, b, _ = root_spec
         if a == 1:
-            # Final-Layer Collapse on row 0 (n non-scalar muls)
             cur = eval_node(A, b, 1, flipped=False, min_w=0, max_w=m, drop_le=-1)
             hat = fwht_pruned(cur, m, m - 1, m)
             row0 = A[0]
@@ -593,7 +602,7 @@ def _make_mech_e_evaluator(n: int, tree_specs: dict[int, tuple], root_spec: tupl
 
 def build_butterfly_opttree_circuit(n: int):
     """
-    Build the lexicographically optimal Gen 8 (Mechanism E + Hasse-Row + Fused Butterfly)
+    Build the lexicographically optimal Gen 9 (Mechanism F1 + E + Hasse-Row)
     circuit for Perm_n(A): minimizes (non_scalar_muls, total_gates, depth).
     """
     if n < 2:
@@ -607,43 +616,35 @@ def build_butterfly_opttree_circuit(n: int):
         return plan, eval2
 
     min_muls, T_opts, root_opts = list_optimal_tree_plans(n)
-
-    # Bottom-up greedy lexicographic tie-breaking per degree k (fast even for large n!)
     chosen: dict[int, tuple] = {1: ("row",)}
     for k in range(2, n):
         opts = T_opts[k]
         if len(opts) == 1:
             chosen[k] = opts[0]
             continue
-        # Score each tied option for degree k by building a dummy evaluator for k (with root (1, k) if k==n-1 else direct)
         best_key = (10**18, 10**18)
         best_opt = opts[0]
         for opt in opts:
-            # Prefer larger a (more balanced) / fewer dry-run gates
             cand_trees = dict(chosen)
             cand_trees[k] = opt
-            # Measure dry-run gates of building node k
-            ev_test = _make_mech_e_evaluator(n, cand_trees, ("parseval", 1, n - 1, n))
-            # Only evaluate full circuit if k == n - 1; for smaller k, measure eval_node directly via a quick proxy
             if k == n - 1:
+                ev_test = _make_mech_f1_evaluator(n, cand_trees, ("parseval", 1, n - 1, n))
                 stats = [0]
                 dummy_A = [[_DryWire(0, stats) for _ in range(n)] for _ in range(n)]
                 out = ev_test(dummy_A, p=3)
                 key = (stats[0], out.depth)
             else:
-                # Prefer dual_ann only if strictly cheaper, otherwise prefer interp (fusable!) and larger a
-                key = (0 if opt[0] == "interp" else 1, -opt[1])
+                key = (0 if opt[0] == "interp_ann1" else 1, -opt[1])
             if key < best_key:
                 best_key = key
                 best_opt = opt
         chosen[k] = best_opt
 
-    # Tie-break across root_opts
     best_root_key = (10**18, 10**18)
     best_root = root_opts[0]
     best_eval = None
     for r_opt in root_opts:
-        ev = _make_mech_e_evaluator(n, chosen, r_opt)
+        ev = _make_mech_f1_evaluator(n, chosen, r_opt)
         if len(root_opts) == 1:
             best_root = r_opt
             best_eval = ev

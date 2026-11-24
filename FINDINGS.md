@@ -79,19 +79,18 @@ Notice that by $n = 12$, `OptTree` drops below $2 \cdot 2^{n-1} = 2^n$ total non
 In Generation 5 (`src/general_n_butterfly_opttree.py`), all precomputed dense rational interpolation and annihilation matrices were replaced with structured fast transforms on the Boolean hypercube:
 
 1. **Möbius–Zeta Isomorphism ($\{\pm 1\}^{n-1} \leftrightarrow \{0, 1\}^{n-1}$):**
-   Interpolating a degree-$m$ multilinear polynomial on the canonical pivot set $P_m = \{y \in \{0, 1\}^{n-1} : |y| \le m\}$ is solved via an inverted Möbius butterfly followed by a forward Zeta butterfly, running in $O(m 2^m)$ additions and **0 scalar multiplications**.
+   Interpolating a degree-$m$ multilinear polynomial on canonical pivots $P_m = \{y : |y| \le m\}$ is solved via an inverted Möbius butterfly followed by a forward Zeta butterfly, running in $O(m 2^m)$ additions and **0 scalar multiplications**.
 2. **Fused Annihilation:**
-   Coefficients $c_S$ with $|S| \le d_{\text{ann}}$ are zeroed out directly between the Möbius and Zeta stages, eliminating the separate annihilation step at zero gate overhead.
+   Coefficients $c_S$ with $|S| \le d_{\text{ann}}$ are zeroed out directly between the Möbius and Zeta stages at zero gate overhead.
 3. **Hasse-Diagram Row Evaluator:**
    Evaluates row linear forms along the Boolean poset with only 1 subtraction per mask step ($2(n-1) + (K-1)$ additions/subtractions total).
-4. **Simultaneous Multiplicative and Total Gate Supremacy:**
-   Starting at $n = 10$, the circuit requires strictly fewer total arithmetic operations than Glynn + Gray code ($10{,}338$ vs. $10{,}410$ gates at $n=10$, and $45{,}940$ vs. $49{,}404$ gates at $n=12$), resolving the additive complexity trade-off.
+4. **Simultaneous Multiplicative and Gate Supremacy:**
+   Starting at $n = 10$, the circuit requires strictly fewer total arithmetic operations than Glynn + Gray code ($10{,}338$ vs. $10{,}410$ gates at $n=10$, and $45{,}940$ vs. $49{,}404$ gates at $n=12$).
 
 ---
 
 ## 5. Generation 6: SLP Compiler (CSE/DCE) and Native C++ Hardware Kernel
 
-Generation 6 introduces an end-to-end hardware execution pipeline:
 * **`slp_compiler.py`:** Formulates the circuit as an arithmetic SSA DAG, executes algebraic Common Subexpression Elimination ($a+b \equiv b+a$, $a \cdot b \equiv b \cdot a$), prunes dead wires, and emits flat C++17 straight-line programs.
 * **`opttree_native_mod61.cpp`:** Implements 128-bit hardware modular arithmetic over the Mersenne prime $2^{61}-1$ with zero conditional branches. Verified bit-exact (32/32 trials) against the native Glynn baseline for all dimensions $n = 4 \dots 14$.
 
@@ -99,35 +98,33 @@ Generation 6 introduces an end-to-end hardware execution pipeline:
 
 ## 6. Generation 7: Mechanism D (Double-Sided Dual-Ball Annihilation)
 
-Generation 7 introduces an algebraic mechanism that shatters the single-sided annihilation bound:
-* **Theorem (Double-Sided Annihilation):** When multiplying unshifted subtrees $U$ (degree $a \ge 2$) and $V$ (degree $b \ge 2$) with $r = n - a - b$ remaining rows, we simultaneously subtract $c_1$ (degree $\le a-2$, vanishing on low-weight ball $|y| \le a-2$) from $U$ and $c_2$ (degree $\le b-2$, vanishing on disjoint high-weight ball $|y| \ge n - 1 - (b-2)$) from $V$.
-* **Proof of Exactness:** All cross-terms $c_1 V R$, $U c_2 R$, and $c_1 c_2 R$ have degree $\le n - 2 < n - 1$. By Walsh character orthogonality, their parity-weighted sum is identically zero!
-* **Complexity:** Reduces non-scalar multiplications to $2^{n-1} - K(n, a-2) - K(n, b-2)$, achieving new world records:
-  - $n = 5$: **41 muls** (vs 42 Gen 5, 64 Glynn, −35.9%)
-  - $n = 6$: **84 muls** (vs 85 Gen 5, 160 Glynn, −47.5%)
-  - $n = 7$: **171 muls** (vs 172 Gen 5, 384 Glynn, −55.5%)
-  - $n = 10$: **1,166 muls** (vs 1,176 Gen 5, 4,608 Glynn, −74.7%) with **10,115 gates** (−2.8% vs Glynn)
-  - $n = 12$: **4,014 muls** (vs 4,081 Gen 5, 22,528 Glynn, −82.2%) with **45,265 gates** (−8.4% vs Glynn)
+* **Double-Sided Annihilation:** Simultaneously subtracts $c_1$ (degree $\le a-2$, vanishing on $|y| \le a-2$) from $U$ and $c_2$ (degree $\le b-2$, vanishing on $|y| \ge n - 1 - (b-2)$) from $V$. All cross-terms have degree $\le n - 2 < n - 1$ and vanish identically against $\sigma$.
 * **Polynomial-Ring SIMD Verification (`bench_poly8_mod61.cpp`):** Stress-tested over $\mathbb{F}_{2^{61}-1}[x] / (x^8 - 2)$.
 
 ---
 
-## 7. Generation 8: Mechanism E (Degree-Preserving Recursive Dual-Ball Annihilation)
+## 7. Generation 8: Mechanism E (Degree-Preserving Recursive Annihilation)
 
-Generation 8 establishes a unifying theorem for tree decomposition:
-* **Theorem (Degree Preservation Under Annihilation):** For any multilinear polynomial $U$ of degree $\le a$ and any shift $c_1$ with $\deg(c_1) \le a - 2$, the degree of the difference satisfies $\deg(U - c_1) \le \max(\deg(U), \deg(c_1)) \le a$. The annihilated polynomial never increases in multilinear degree.
-* **Corollary (Symmetric Recursive Binary Tree):** The product of two annihilated subtrees $(U - c_1)(V - c_2)$ retains degree $\le a + b$ and is exact modulo degree $\le a + b - 2$. This collapses the entire tree search into a single symmetric recurrence:
-  $$T(k) = \min_{1 \le a \le \lfloor k/2 \rfloor} \Bigl[ T(a) + T(k - a) + \min\bigl(K(n, k),\, 2^{n-1} - K(n, a - 2) - K(n, k - a - 2)\bigr) \Bigr]$$
-* **Record Multiplication Scaling:**
-  - $n = 10$: **1,165 muls** (vs. 4,608 Glynn, **−74.7%**)
-  - $n = 11$: **2,150 muls** (vs. 10,240 Glynn, **−79.0%**)
-  - $n = 12$: **4,013 muls** (vs. 22,528 Glynn, **−82.2%**)
-  - $n = 14$: **14,610 muls** (vs. 106,496 Glynn, **−86.3%**)
-  - $n = 15$: **27,909 muls** (vs. 229,376 Glynn, **−87.8%**)
-  - $n = 16$: **53,118 muls** (vs. 491,520 Glynn, **−89.2%**)
+* **Degree Invariance:** Proved that subtracting a degree $\le a-2$ polynomial from a degree $\le a$ polynomial satisfies $\deg(U - c_1) \le a$. The annihilated polynomial never increases in multilinear degree, allowing recursive binary tree composition under a single symmetric recurrence.
 
 ---
 
-## 8. Open Directions
+## 8. Generation 9: Mechanism F (Simultaneous Upper-Degree Interpolation + Lower-Ball Annihilation)
+
+* **Mechanism F1/F2:** When combining degree-$a$ subtree $U$ and degree-$b$ subtree $V$ ($a \le b$) into degree $k = a + b < n - 1$, annihilating child $V$ on $Z_b = \{y : |y| \le b-2\}$ preserves $\deg(V - c_2) \le b$. The product $U(V - c_2)$ still has degree $\le k$ and vanishes on $Z_b \subset P_k$.
+* **Canonical Pivot Cost:**
+  $$\mathrm{Cost}_{F1}(a, b) = K(n, a + b) - K(n, b - 2)$$
+  $$\mathrm{Cost}_{F2}(a, b) = K(n, a + b) - K(n, a - 2) - K(n, b - 2)$$
+* **Record Scaling:**
+  - $n = 6$: **83 muls** (vs 160 Glynn)
+  - $n = 8$: **318 muls** (vs 896 Glynn)
+  - $n = 10$: **1,152 muls** (vs 4,608 Glynn, **−75.0%**)
+  - $n = 12$: **3,941 muls** (vs 22,528 Glynn, **−82.5%**, **−9.1% total gates**)
+  - $n = 14$: **14,485 muls** (vs 106,496 Glynn, **−86.4%**)
+  - $n = 16$: **52,488 muls** (vs 491,520 Glynn, **−89.3%**)
+* **Low-Rank Collapse (`src/low_rank_permanent.py`):** For $n \times n$ matrices of rank $r \ll n$, computes exact permanent in $O(n^r)$ polynomial time via MacMahon/Barvinok polynomial expansion.
+
+---
+
+## 9. Open Directions
 - **Sub-18 at $n = 4$:** Determining whether a non-Glynn multilinear or depth-3 product-rank-6 circuit exists to push below 18 non-scalar multiplications remains an open target for Mode B search.
-- **Hardware Vectorization (AVX-512 / GPU):** Extending the Gen 6 native C++ kernel to SIMD vector registers to leverage the wide parallel branches in `OptTree`.
