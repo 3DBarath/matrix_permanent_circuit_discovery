@@ -1,23 +1,30 @@
 /-
-  Lean 4 Formalization of Core Matrix Permanent Theorems
-  Typechecks cleanly with Lean 4 (v4.36.0) + Mathlib4 (zero errors, zero sorry).
+  Lean 4 + Mathlib4 Formalization: Matrix Permanent Degree-2 Row Expansion
+  Proves that if row 0 of an (n+1)x(n+1) matrix A has at most two nonzero entries
+  at columns j₀ ≠ j₁, then perm A = A 0 j₀ * perm (A.submatrix Fin.succ j₀.succAbove)
+                                   + A 0 j₁ * perm (A.submatrix Fin.succ j₁.succAbove).
 -/
 import Mathlib.LinearAlgebra.Matrix.Permanent
 
-open Matrix
+open Matrix Finset
 
-/-- Degree-1 forced-edge peeling: scaling a row by w scales the permanent by w. -/
-theorem deg1_peeling_scale (w sub_perm : Int) : w * sub_perm = sub_perm * w :=
-  Int.mul_comm w sub_perm
-
-/-- Essential-variable inequality: 9 <= 2*M - W forces M >= 5. -/
-theorem essential_var_eliminates_le_five (M W : Nat) (h1 : 9 ≤ 2 * M - W) : M ≥ 5 := by
-  omega
-
-/-- For M = 6, the essential-variable inequality 9 <= 12 - W forces W <= 3. -/
-theorem essential_var_m6_forces_w_le_3 (W : Nat) (h : 9 ≤ 2 * 6 - W) : W ≤ 3 := by
-  omega
-
-/-- Hypercube polarization sign-sum: for any n >= 1, 2^(n-1) > 0. -/
-theorem hypercube_floor_pos (n : Nat) : 2 ^ (n - 1) > 0 :=
-  Nat.pow_pos (by omega)
+theorem perm_degree2_row_expansion
+    {R : Type*} [CommRing R] {n : ℕ}
+    (A : Matrix (Fin (n + 1)) (Fin (n + 1)) R)
+    (j₀ j₁ : Fin (n + 1)) (hne : j₀ ≠ j₁)
+    (hdeg2 : ∀ j : Fin (n + 1), j ≠ j₀ → j ≠ j₁ → A 0 j = 0) :
+    perm A = A 0 j₀ * perm (A.submatrix Fin.succ j₀.succAbove) +
+             A 0 j₁ * perm (A.submatrix Fin.succ j₁.succAbove) := by
+  rw [Matrix.perm_eq_sum_submatrix]
+  have hj₁_mem : j₁ ∈ (Finset.univ : Finset (Fin (n + 1))).erase j₀ :=
+    Finset.mem_erase.mpr ⟨hne.symm, Finset.mem_univ j₁⟩
+  rw [← Finset.add_sum_erase (Finset.univ : Finset (Fin (n + 1))) _ (Finset.mem_univ j₀)]
+  rw [← Finset.add_sum_erase ((Finset.univ : Finset (Fin (n + 1))).erase j₀) _ hj₁_mem]
+  have h_zero : ∑ j ∈ ((Finset.univ : Finset (Fin (n + 1))).erase j₀).erase j₁,
+      A 0 j * perm (A.submatrix Fin.succ j.succAbove) = 0 := by
+    apply Finset.sum_eq_zero
+    intro j hj
+    have hj1 : j ≠ j₁ := (Finset.mem_erase.mp hj).1
+    have hj0 : j ≠ j₀ := (Finset.mem_erase.mp (Finset.mem_erase.mp hj).2).1
+    rw [hdeg2 j hj0 hj1, zero_mul]
+  rw [h_zero, add_zero, add_assoc]
