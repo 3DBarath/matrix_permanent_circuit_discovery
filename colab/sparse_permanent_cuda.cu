@@ -513,10 +513,9 @@ static void collect_leaves(std::vector<AdjRow> rows, uint64_t cur_scale,
     collect_leaves(std::move(exc), cur_scale, leaves, branches);
 }
 
-static uint64_t eval_leaves_gpu(const std::vector<CpuLeaf>& leaves) {
-    if (leaves.empty()) return 0;
-
-    int num_leaves = (int)leaves.size();
+static uint64_t eval_leaves_gpu_chunk(const std::vector<CpuLeaf>& leaves, int start_idx, int end_idx) {
+    int num_leaves = end_idx - start_idx;
+    if (num_leaves <= 0) return 0;
     std::vector<LeafMeta> h_meta(num_leaves);
     std::vector<int> h_row_ptr;
     std::vector<int> h_col_idx;
@@ -525,7 +524,7 @@ static uint64_t eval_leaves_gpu(const std::vector<CpuLeaf>& leaves) {
 
     int cur_row_offset = 0;
     for (int i = 0; i < num_leaves; ++i) {
-        const auto& lf = leaves[i];
+        const auto& lf = leaves[start_idx + i];
         int n = (int)lf.rows.size();
         h_meta[i] = {n, cur_row_offset, lf.scale};
         if (n == 0) continue;
@@ -595,6 +594,17 @@ static uint64_t eval_leaves_gpu(const std::vector<CpuLeaf>& leaves) {
 
     uint64_t total = 0;
     for (uint64_t v : h_results) total = add61(total, v);
+    return total;
+}
+
+static uint64_t eval_leaves_gpu(const std::vector<CpuLeaf>& leaves) {
+    if (leaves.empty()) return 0;
+    const int MAX_BATCH = 2048; // ~4 GB VRAM cap, safe on 15.6 GB Tesla T4
+    uint64_t total = 0;
+    for (int s = 0; s < (int)leaves.size(); s += MAX_BATCH) {
+        int e = std::min((int)leaves.size(), s + MAX_BATCH);
+        total = add61(total, eval_leaves_gpu_chunk(leaves, s, e));
+    }
     return total;
 }
 
