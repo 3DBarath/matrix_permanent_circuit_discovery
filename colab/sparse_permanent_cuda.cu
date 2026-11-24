@@ -283,7 +283,7 @@ struct LeafMeta {
     uint64_t scale;
 };
 
-__global__ void frontier_dp_batch_kernel(
+__global__ void __launch_bounds__(BLOCK_THREADS) frontier_dp_batch_kernel(
     int num_leaves,
     const LeafMeta* __restrict__ leaves,
     const int* __restrict__ row_ptr,     // CSR row pointers (global across all leaves)
@@ -372,7 +372,11 @@ __global__ void frontier_dp_batch_kernel(
                 if (!(mask & bit)) {
                     uint32_t nm = mask | bit;
                     uint64_t prod = mul61(val, col_val[e]);
-                    atomicAdd61(&nxt_val[nm], prod);
+                    if (prev_sz == 1 || blockDim.x == 1) {
+                        nxt_val[nm] = add61(nxt_val[nm], prod);
+                    } else {
+                        atomicAdd61(&nxt_val[nm], prod);
+                    }
                 }
             }
         }
@@ -409,7 +413,7 @@ __global__ void frontier_dp_batch_kernel(
                 for (int ni = 0; ni < kcnt; ++ni) {
                     if ((mask >> s_keep_idx[ni]) & 1U) cm |= (1U << ni);
                 }
-                atomicAdd61(&dp_val[cm], v);
+                dp_val[cm] = v;
             }
             __syncthreads();
 

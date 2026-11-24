@@ -544,15 +544,15 @@ double sparse_hafnian(const Matrix& A_in, int* max_frontier_out = nullptr, int f
     return ans;
 }
 
-// Generate a random 3-regular graph (configuration model with rejection for simple graph)
-Matrix random_3_regular(int n, std::mt19937_64& rng) {
+// Generate a random k-regular graph (configuration model with rejection for simple graph)
+Matrix random_k_regular(int n, int k, std::mt19937_64& rng) {
     Matrix A(n, std::vector<double>(n, 0.0));
     std::vector<int> stubs;
-    stubs.reserve(3 * n);
+    stubs.reserve(k * n);
     while (true) {
         stubs.clear();
         for (int i = 0; i < n; ++i) {
-            for (int k = 0; k < 3; ++k) stubs.push_back(i);
+            for (int c = 0; c < k; ++c) stubs.push_back(i);
         }
         std::shuffle(stubs.begin(), stubs.end(), rng);
         bool ok = true;
@@ -569,6 +569,10 @@ Matrix random_3_regular(int n, std::mt19937_64& rng) {
         }
         if (ok) return A;
     }
+}
+
+Matrix random_3_regular(int n, std::mt19937_64& rng) {
+    return random_k_regular(n, 3, rng);
 }
 
 } // namespace sparse_hafnian
@@ -612,8 +616,8 @@ int main() {
         }
     }
 
-    std::cout << "\n=== Benchmark on 3-Regular Graphs (n = 24..60, OpenMP threads = " << omp_get_max_threads() << ") ===\n";
-    for (int n : {24, 28, 32, 36, 40, 44, 48, 52, 56, 60}) {
+    std::cout << "\n=== Benchmark on 3-Regular Graphs (n = 24..72, OpenMP threads = " << omp_get_max_threads() << ") ===\n";
+    for (int n : {24, 28, 32, 36, 40, 44, 48, 52, 56, 60, 64, 68, 72}) {
         double total_ms = 0.0;
         int max_f = 0;
         double last_val = 0.0;
@@ -626,6 +630,35 @@ int main() {
             auto t1 = std::chrono::high_resolution_clock::now();
             total_ms += std::chrono::duration<double, std::milli>(t1 - t0).count();
             max_f = std::max(max_f, f);
+        }
+        std::cout << "n=" << std::setw(2) << n
+                  << " | avg_time = " << std::fixed << std::setprecision(3) << (total_ms / trials) << " ms"
+                  << " | max_frontier = " << max_f
+                  << " | sample_haf = " << std::setprecision(0) << last_val << "\n";
+    }
+
+    std::cout << "\n=== Verification & Benchmark on 4-Regular Graphs (n = 12..24, OpenMP threads = " << omp_get_max_threads() << ") ===\n";
+    for (int n : {12, 16, 20, 24}) {
+        double total_ms = 0.0;
+        int max_f = 0;
+        double last_val = 0.0;
+        int trials = 5;
+        for (int t = 0; t < trials; ++t) {
+            Matrix A = random_k_regular(n, 4, rng);
+            int f = 0;
+            auto t0 = std::chrono::high_resolution_clock::now();
+            last_val = sparse_hafnian::sparse_hafnian(A, &f);
+            auto t1 = std::chrono::high_resolution_clock::now();
+            total_ms += std::chrono::duration<double, std::milli>(t1 - t0).count();
+            max_f = std::max(max_f, f);
+            if (n == 12) {
+                double bf = brute_force_hafnian(A);
+                double rel_err = std::abs(bf - last_val) / std::max(1.0, std::abs(bf));
+                if (rel_err > 1e-9) {
+                    std::cerr << "VERIFICATION FAILED for 4-regular n=12: rel_err=" << rel_err << "\n";
+                    return 1;
+                }
+            }
         }
         std::cout << "n=" << std::setw(2) << n
                   << " | avg_time = " << std::fixed << std::setprecision(3) << (total_ms / trials) << " ms"

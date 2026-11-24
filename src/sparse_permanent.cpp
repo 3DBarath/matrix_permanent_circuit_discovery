@@ -22,6 +22,7 @@
 #include <omp.h>
 #include <queue>
 #include <random>
+#include <string>
 #include <unordered_map>
 #include <utility>
 #include <vector>
@@ -235,6 +236,82 @@ static int order_min_frontier(const std::vector<AdjRow>& rows, std::vector<int>&
         if (cur_open > max_fw) max_fw = cur_open;
         for (const auto& kv : rows[best_r]) if (--col_rem[kv.first] == 0) { opened[kv.first] = 0; --cur_open; }
     }
+
+    if (n >= 6 && n <= 80) {
+        auto eval_order = [&](const std::vector<int>& ord, int& out_max_fw, uint64_t& out_cost) {
+            std::vector<int> first_u(n, n), last_u(n, -1);
+            for (int i = 0; i < n; ++i) {
+                for (const auto& kv : rows[ord[i]]) {
+                    int c = kv.first;
+                    if (i < first_u[c]) first_u[c] = i;
+                    if (i > last_u[c]) last_u[c] = i;
+                }
+            }
+            std::vector<int> diff(n + 1, 0);
+            for (int c = 0; c < n; ++c) {
+                if (last_u[c] >= 0) {
+                    diff[first_u[c]]++;
+                    diff[last_u[c] + 1]--;
+                }
+            }
+            int cur = 0;
+            out_max_fw = 0;
+            out_cost = 0;
+            for (int i = 0; i < n; ++i) {
+                cur += diff[i];
+                if (cur > out_max_fw) out_max_fw = cur;
+                out_cost += (1ULL << std::min(cur, 30));
+            }
+        };
+
+        int best_fw = 0;
+        uint64_t best_cost = 0;
+        eval_order(order, best_fw, best_cost);
+
+        bool improved = true;
+        for (int pass = 0; pass < 4 && improved; ++pass) {
+            improved = false;
+            for (int len : {1, 2}) {
+                for (int i = 0; i + len <= n; ++i) {
+                    std::vector<int> base;
+                    base.reserve(n - len);
+                    for (int k = 0; k < n; ++k) {
+                        if (k < i || k >= i + len) base.push_back(order[k]);
+                    }
+                    int best_j = -1;
+                    int best_j_fw = best_fw;
+                    uint64_t best_j_cost = best_cost;
+                    std::vector<int> cand(n);
+                    for (int j = 0; j <= (int)base.size(); ++j) {
+                        if (j == i) continue;
+                        int idx = 0;
+                        for (int k = 0; k < j; ++k) cand[idx++] = base[k];
+                        for (int k = 0; k < len; ++k) cand[idx++] = order[i + k];
+                        for (int k = j; k < (int)base.size(); ++k) cand[idx++] = base[k];
+                        int fw = 0;
+                        uint64_t cost = 0;
+                        eval_order(cand, fw, cost);
+                        if (fw < best_j_fw || (fw == best_j_fw && cost < best_j_cost)) {
+                            best_j_fw = fw;
+                            best_j_cost = cost;
+                            best_j = j;
+                        }
+                    }
+                    if (best_j != -1) {
+                        std::vector<int> seg(order.begin() + i, order.begin() + i + len);
+                        int idx = 0;
+                        for (int k = 0; k < best_j; ++k) order[idx++] = base[k];
+                        for (int k = 0; k < len; ++k) order[idx++] = seg[k];
+                        for (int k = best_j; k < (int)base.size(); ++k) order[idx++] = base[k];
+                        best_fw = best_j_fw;
+                        best_cost = best_j_cost;
+                        improved = true;
+                    }
+                }
+            }
+        }
+        max_fw = best_fw;
+    }
     return max_fw;
 }
 
@@ -446,8 +523,109 @@ static std::vector<AdjRow> permute_mat(const std::vector<AdjRow>& rows, std::mt1
     return out;
 }
 
-int main() {
+static uint64_t glynn_perm(const std::vector<AdjRow>& rows) {
+    int n = (int)rows.size();
+    if (n == 0) return 1;
+    std::vector<std::vector<uint64_t>> A(n, std::vector<uint64_t>(n, 0));
+    for (int i = 0; i < n; ++i)
+        for (const auto& kv : rows[i]) A[i][kv.first] = kv.second;
+
+    uint64_t total = 0;
+    uint64_t limit = 1ULL << (n - 1);
+    #pragma omp parallel
+    {
+        int tid = omp_get_thread_num();
+        int nthreads = omp_get_num_threads();
+        uint64_t start = (limit * tid) / nthreads;
+        uint64_t end = (limit * (tid + 1)) / nthreads;
+        if (start < end) {
+            std::vector<uint64_t> row_sum(n, 0);
+            uint64_t gray = start ^ (start >> 1);
+            int parity = __builtin_popcountll(gray) & 1;
+            for (int i = 0; i < n; ++i) {
+                uint64_t s = A[i][0];
+                for (int j = 1; j < n; ++j) {
+                    if ((gray >> (j - 1)) & 1ULL) s = sub61(s, A[i][j]);
+                    else s = add61(s, A[i][j]);
+                }
+                row_sum[i] = s;
+            }
+            uint64_t local_sum = 0;
+            for (uint64_t idx = start; idx < end; ++idx) {
+                uint64_t prod = 1;
+                for (int i = 0; i < n; ++i) prod = mul61(prod, row_sum[i]);
+                if (parity) local_sum = sub61(local_sum, prod);
+                else local_sum = add61(local_sum, prod);
+
+                if (idx + 1 < end) {
+                    uint64_t next_gray = (idx + 1) ^ ((idx + 1) >> 1);
+                    uint64_t diff = gray ^ next_gray;
+                    int bit = __builtin_ctzll(diff);
+                    int j = bit + 1;
+                    bool now_neg = (next_gray >> bit) & 1ULL;
+                    if (now_neg) {
+                        for (int i = 0; i < n; ++i) {
+                            uint64_t two_a = add61(A[i][j], A[i][j]);
+                            row_sum[i] = sub61(row_sum[i], two_a);
+                        }
+                    } else {
+                        for (int i = 0; i < n; ++i) {
+                            uint64_t two_a = add61(A[i][j], A[i][j]);
+                            row_sum[i] = add61(row_sum[i], two_a);
+                        }
+                    }
+                    gray = next_gray;
+                    parity ^= 1;
+                }
+            }
+            // Note: P61 reduction for OpenMP reduction(+:total)
+            // We can't use + directly mod P61 in reduction, so do critical
+            #pragma omp critical
+            {
+                total = add61(total, local_sum);
+            }
+        }
+    }
+    uint64_t inv2 = (P61 + 1) / 2;
+    uint64_t inv2n1 = pow61(inv2, n - 1);
+    return mul61(total, inv2n1);
+}
+
+int main(int argc, char** argv) {
+    bool mode_4reg = false;
+    for (int i = 1; i < argc; ++i) {
+        if (std::string(argv[i]) == "--4reg") mode_4reg = true;
+    }
     std::mt19937_64 rng(2026);
+    if (mode_4reg) {
+        std::printf("=== Gen 15 OpenMP + Flat-Array C++17 (threads=%d) on 4-Regular Weighted Graphs ===\n",
+                    omp_get_max_threads());
+        for (int n : {16, 20, 24, 28}) {
+            int trials = (n <= 24) ? 3 : 2;
+            double tot_ops = 0, tot_ms = 0, tot_br = 0;
+            for (int t = 0; t < trials; ++t) {
+                auto M = gen_d_reg(n, 4, rng);
+                Stats st;
+                auto t0 = std::chrono::high_resolution_clock::now();
+                uint64_t v1 = solve_parallel(M, st);
+                double ms = std::chrono::duration<double, std::milli>(std::chrono::high_resolution_clock::now() - t0).count();
+                tot_ops += st.ops; tot_ms += ms; tot_br += st.branches;
+                if (t == 0) {
+                    uint64_t vg = glynn_perm(M);
+                    if (v1 != vg) {
+                        std::printf("GLYNN MISMATCH n=%d: got=%llu expected=%llu\n",
+                                    n, (unsigned long long)v1, (unsigned long long)vg);
+                        return 1;
+                    }
+                }
+            }
+            double avg_ops = tot_ops / trials, avg_ms = tot_ms / trials, avg_br = tot_br / trials;
+            double ratio = std::pow(2.0, n) / avg_ops;
+            std::printf("  n=%2d | avg_ops=%12.1f | vs 2^n: %15.2e x fewer! | br=%7.1f | %8.2f ms | GLYNN PASS\n",
+                        n, avg_ops, ratio, avg_br, avg_ms);
+        }
+        return 0;
+    }
     std::printf("=== Gen 13 OpenMP + Flat-Array C++17 (threads=%d) on 3-Regular Weighted Graphs ===\n",
                 omp_get_max_threads());
     for (int n : {48, 56, 60, 64, 68, 72}) {
