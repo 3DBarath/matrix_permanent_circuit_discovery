@@ -273,8 +273,8 @@ Graph Family & $n$ & Avg DP Ops & Dense $2^n$ Ops & Ratio (Speedup) & Max Fronti
 
 Fitting the operation count $T(n) = C \cdot \alpha^n$ yields the following empirical bases:
 \begin{itemize}[leftmargin=*]
-    \item \textbf{3-Regular Bipartite Graphs:} $\alpha \approx \mathbf{1.216}$--$\mathbf{1.238}$ in frontier-DP regime and $\mathbf{1.303}$ across deep cascade-branching up to $n = 48$.
-    \item \textbf{4-Regular Bipartite Graphs:} $\alpha \approx \mathbf{1.416}$. The frontier width satisfies $fw(n) \approx 0.52 n$, outperforming the dense $2^n$ baseline by more than two orders of magnitude at $n = 24$.
+    \item \textbf{3-Regular Bipartite Graphs:} $\alpha \approx \mathbf{1.216}$--$\mathbf{1.238}$ in frontier-DP regime and $\mathbf{1.303}$ across deep cascade-branching up to $n = 48$. With 128-bit mixed-vertex DP, 0-op Boolean reachability, and Dulmage--Mendelsohn + Or-Opt SA ordering, 3-regular scaling improves further to $\mathbf{1.188^n}$ at $n = 60$.
+    \item \textbf{4-Regular Bipartite Graphs:} $\alpha \approx \mathbf{1.416}$ in standard frontier-DP, dropping by $46\%$ in operations to $\mathbf{1.314^n}$ under the 128-bit mixed-vertex Dulmage--Mendelsohn engine.
     \item \textbf{Banded Matrices ($w \in \{4,5,6\}$):} Strict $O(n)$ linear scaling, evaluating $n = 32$ in under $1$\,ms.
 \end{itemize}
 
