@@ -278,13 +278,13 @@ Fitting the operation count $T(n) = C \cdot \alpha^n$ yields the following empir
     \item \textbf{Banded Matrices ($w \in \{4,5,6\}$):} Strict $O(n)$ linear scaling, evaluating $n = 32$ in under $1$\,ms.
 \end{itemize}
 
-\subsection{Native C++17 \& OpenMP Execution up to $n = 60$ (Generations 12--13)}
+\subsection{Native C++17 \& OpenMP Execution up to $n = 64$ (Generations 12--14)}
 
-To eliminate Python interpreter overhead and evaluate exact modular arithmetic at hardware speed, we implemented the full reduction + cascade-branching + min-frontier DP architecture in native C++17 (\texttt{src/sparse\_permanent.cpp}) over the Mersenne prime $\F_{2^{61}-1}$ using 128-bit multiplication intrinsics. In Generation~13, replacing hash-map DP with a flat contiguous array (\texttt{frontier} $\le 14$) and adding OpenMP task-level parallelism across top-level cascade branches pushes exact 3-regular weighted permanent evaluation all the way to **$n = 60$**. Table~\ref{tab:cpp_sparse_bench} reports wall-clock runtimes compiled with \texttt{g++ -O3 -march=native -fopenmp}.
+To eliminate Python interpreter overhead and evaluate exact modular arithmetic at hardware speed, we implemented the full reduction + cascade-branching + min-frontier DP architecture in native C++17 (\texttt{src/sparse\_permanent.cpp}) over the Mersenne prime $\F_{2^{61}-1}$ using 128-bit multiplication intrinsics. Replacing hash-map DP with a flat contiguous array (\texttt{frontier} $\le 14$) and adding OpenMP task-level parallelism across top-level cascade branches pushes exact 3-regular weighted permanent evaluation all the way to **$n = 64$**. Table~\ref{tab:cpp_sparse_bench} reports wall-clock runtimes across Generations 13--14.
 
 \begin{table}[!htbp]
 \centering
-\caption{Native C++17 + OpenMP (8 threads, \texttt{src/sparse\_permanent.cpp}) exact 3-regular weighted permanent benchmarks ($n = 32\text{--}60$) modulo $2^{61}-1$.}
+\caption{Native C++17 + OpenMP (\texttt{src/sparse\_permanent.cpp}) exact 3-regular weighted permanent benchmarks ($n = 32\text{--}64$) modulo $2^{61}-1$.}
 \label{tab:cpp_sparse_bench}
 \begin{tabularx}{\linewidth}{rrrrrr}
 \toprule
@@ -292,15 +292,16 @@ $n$ & Avg Ops & Dense $2^n$ Ops & Ratio (Speedup) & Branches & Native Time \\
 \midrule
 32 & 4,795.3     & $4.29 \times 10^9$    & $8.96 \times 10^5\times$     & 0.3     & 7.13 ms \\
 40 & 61,560.0    & $1.10 \times 10^{12}$ & $1.79 \times 10^7\times$     & 29.7    & 3.82 ms \\
-48 & 649,206.0   & $2.81 \times 10^{14}$ & $4.34 \times 10^8\times$     & 411.0   & 7.19 ms \\
+48 & 546,655.0   & $2.81 \times 10^{14}$ & $5.15 \times 10^8\times$     & 361.0   & 93.70 ms \\
 52 & 2,686,308.0 & $4.50 \times 10^{15}$ & $1.68 \times 10^9\times$     & 1,840.5 & 24.76 ms \\
-56 & 4,156,054.5 & $7.21 \times 10^{16}$ & $1.73 \times 10^{10}\times$  & 2,853.5 & 39.62 ms \\
-\textbf{60} & \textbf{7,414,040.0} & \textbf{1.15 $\times$ 10$^{18}$} & \textbf{1.56 $\times$ 10$^{11}\times$} & \textbf{4,905.0} & \textbf{75.49 ms} \\
+56 & 3,051,364.0 & $7.21 \times 10^{16}$ & $2.36 \times 10^{10}\times$  & 2,075.0 & 429.90 ms \\
+60 & 1,666,205.0 & $1.15 \times 10^{18}$ & $6.92 \times 10^{11}\times$  & 1,239.0 & 257.90 ms \\
+\textbf{64} & \textbf{66,179,379.0} & \textbf{1.84 $\times$ 10$^{19}$} & \textbf{2.79 $\times$ 10$^{11}\times$} & \textbf{54,904.0} & \textbf{9.78 s} \\
 \bottomrule
 \end{tabularx}
 \end{table}
 
-At $n = 60$, where dense $2^{60}$ requires $1.15 \times 10^{18}$ ($1.15$ quintillion) operations, the Generation~13 OpenMP + flat-array C++17 engine computes the exact permanent in **75.49 ms** (8 threads) with $7,414,040$ operations ($1.56 \times 10^{11}\times$ fewer operations), verified permutation-invariant across all sizes.
+At $n = 64$, where dense $2^{64}$ requires $1.84 \times 10^{19}$ ($18.4$ quintillion) operations, the Generation~14 OpenMP + flat-array C++17 engine computes the exact permanent in **9.78 s** with $66,179,379$ operations ($2.79 \times 10^{11}\times$ fewer operations), verified permutation-invariant across all sizes.
 
 \takeaway{Breaking the $2^n$ Barrier}{While Part~I established that the base $2.000$ represents the rigid information-theoretic floor for linear polarization on dense matrices, structured and bounded-degree matrices do not inherit this bound. By interleaving degree-2 series contractions with frontier-compressed dynamic programming, we achieve exact sub-$2^n$ scaling ($\mathbf{1.238^n}$ for $d=3$), resolving a longstanding practical obstacle in exact counting.}
 
