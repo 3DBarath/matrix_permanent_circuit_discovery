@@ -28,4 +28,4 @@ theorem perm_degree2_row_cofactor_collapse
     have hj1 : j ≠ j₁ := (Finset.mem_erase.mp hj).1
     have hj0 : j ≠ j₀ := (Finset.mem_erase.mp (Finset.mem_erase.mp hj).2).1
     rw [hdeg2 j hj0 hj1, zero_mul]
-  rw [h_zero, add_zero, add_assoc]
+  rw [h_zero, add_zero]
