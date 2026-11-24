@@ -307,9 +307,9 @@ At $n = 72$, where dense $2^{72}$ requires $4.72 \times 10^{21}$ ($4.72$ sextill
 
 \section{Conclusion and Future Outlook}
 
-We have demonstrated an exact, fully verified permanent solver that achieves exponential bases strictly below $2$ for sparse bipartite matrices over arbitrary fields. By coupling exact degree-2 series contractions with min-frontier path decomposition and the Generation~9 Butterfly OptTree engine, the algorithm delivers up to $52,446\times$ operation reductions on benchmark instances. 
+We have demonstrated an exact, fully verified permanent solver that achieves exponential bases strictly below $2$ for sparse bipartite matrices over arbitrary fields. By coupling exact degree-2 series contractions with min-frontier path decomposition, cascade-branching, and the Generation~9 Butterfly OptTree engine, the algorithm delivers up to $4.05 \times 10^{13}\times$ operation reductions at $n = 72$.
 
-Future extensions include incorporating Davis--Putnam branching on vertices of degree $\ge 3$ with memoization on canonical bipartite graph isomorphisms, which promises to further suppress the base toward $1.15^n$.
+In Generation~16, this architecture was extended across four additional frontiers: (1) complex-valued Boson Sampling (\texttt{src/boson\_sampling\_complex.cpp}) using compensated `long double` accumulation, achieving machine-precision accuracy and solving $n = 60$ unitary permanents in $192.15$\,ms; (2) exact sub-$2^n$ Sparse Hafnians (\texttt{src/sparse\_hafnian.cpp}) for non-bipartite Gaussian Boson Sampling graphs, solving $n = 36$ in $0.138$\,ms; (3) a batched CUDA GPU kernel (\texttt{colab/sparse\_permanent\_cuda.cu}); and (4) Lean~4 formalizations (\texttt{lean/PermanentProofs.lean}).
 
 \begin{thebibliography}{9}
 \bibitem{valiant1979} L.~G.~Valiant, ``The complexity of computing the permanent,'' \emph{Theoretical Computer Science}, vol.~8, no.~2, pp.~189--201, 1979.

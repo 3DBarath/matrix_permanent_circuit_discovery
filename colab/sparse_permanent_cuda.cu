@@ -465,7 +465,7 @@ static void collect_leaves(std::vector<AdjRow> rows, uint64_t cur_scale,
     std::vector<int> order;
     int fw = order_min_frontier(comp, order);
 
-    if (k <= 14 || fw <= MAX_GPU_FW - 1) {
+    if (fw <= MAX_GPU_FW && (k <= 14 || fw <= MAX_GPU_FW - 1)) {
         leaves.push_back({std::move(comp), std::move(order), cur_scale});
         return;
     }
