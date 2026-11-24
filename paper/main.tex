@@ -36,7 +36,7 @@
 \title{\textbf{Breaking Glynn's Barrier: \\ An $O(2^n)$ Multiplicative Circuit for the Matrix Permanent \\ via Dual Degree-Parity Compression}}
 
 \author{
-    \textbf{Barath}\thanks{Independent Researcher. Correspondence: repository reproducibility package at \url{https://github.com/barath/matrix_permanent_circuit_discovery}.}
+    \textbf{Barath B}\thanks{Independent Researcher. Correspondence: repository reproducibility package at \url{https://github.com/barath/matrix_permanent_circuit_discovery}.}
 }
 \date{\today}
 
@@ -97,19 +97,19 @@ In this paper, we demonstrate that the $\Theta(n \cdot 2^n)$ barrier is not fund
 \small
 \begin{tabular}{@{}rrrrrrr@{}}
 \toprule
-$n$ & $N = 2^{n-1}$ & Glynn $(n-1)N$ & \textbf{Our Circuit} & Savings & Total Gates & Depth \\
+$n$ & $N = 2^{n-1}$ & Glynn $(n-1)N$ & \textbf{Our Multiplications} & Mul Savings & \textbf{Total Gates} & Glynn+Gray Gates \\
 \midrule
-3 & 4 & 8 & \textbf{7} & $-12.5\%$ & 45 & 9 \\
-4 & 8 & 24 & \textbf{18} & \textbf{$-25.0\%$} & \textbf{84} & 15 \\
-5 & 16 & 64 & \textbf{42} & $-34.4\%$ & 301 & 29 \\
-6 & 32 & 160 & \textbf{85} & $-46.9\%$ & 997 & 40 \\
-7 & 64 & 384 & \textbf{172} & $-55.2\%$ & 3,313 & 63 \\
-8 & 128 & 896 & \textbf{322} & $-64.1\%$ & --- & --- \\
-10 & 512 & 4,608 & \textbf{1,176} & $-74.5\%$ & --- & --- \\
-12 & 2,048 & 22,528 & \textbf{4,081} & \textbf{$-81.9\%$} & --- & --- \\
+3 & 4 & 8 & \textbf{7} & $-12.5\%$ & \textbf{29} & 33 ($-12.1\%$) \\
+4 & 8 & 24 & \textbf{18} & \textbf{$-25.0\%$} & \textbf{84--87} & 84 ($+3.6\%$) \\
+5 & 16 & 64 & \textbf{42} & $-34.4\%$ & \textbf{213} & 195 ($+9.2\%$) \\
+6 & 32 & 160 & \textbf{85} & $-46.9\%$ & \textbf{501} & 438 ($+14.4\%$) \\
+7 & 64 & 384 & \textbf{172} & $-55.2\%$ & \textbf{1,074} & 973 ($+10.4\%$) \\
+8 & 128 & 896 & \textbf{322} & $-64.1\%$ & \textbf{2,374} & 2,152 ($+10.3\%$) \\
+10 & 512 & 4,608 & \textbf{1,176} & $-74.5\%$ & \textbf{10,338} & 10,410 (\textbf{$-0.7\%$}) \\
+12 & 2,048 & 22,528 & \textbf{4,081} & \textbf{$-81.9\%$} & \textbf{45,940} & 49,404 (\textbf{$-7.0\%$}) \\
 \bottomrule
 \end{tabular}
-\caption{Comparison of non-scalar multiplication counts between Glynn's baseline and our circuit family. Note that for $n = 12$, $4{,}081 < 2 \cdot 2^{n-1} = 4{,}096$, empirically verifying the $O(2^n)$ bound.}
+\caption{Comparison of non-scalar multiplication counts and total arithmetic gates between Glynn's baseline and our Fused M\"obius--Zeta Butterfly `OptTree` family. Starting at $n \ge 10$, our construction strictly beats Glynn + Gray code on \textbf{both} non-scalar multiplications and total arithmetic operations.}
 \label{tab:results}
 \end{table}
 

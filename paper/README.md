@@ -1,6 +1,6 @@
 # Breaking Glynn's Barrier: An O(2^n) Multiplicative Circuit for the Matrix Permanent via Dual Degree-Parity Compression
 
-**Author:** Barath (Independent Researcher)  
+**Author:** Barath B (Independent Researcher)  
 **Target Submission:** arXiv (math.CO / cs.CC) / STOC / FOCS / CCC  
 **Source File:** [`paper/main.tex`](./main.tex)
 
