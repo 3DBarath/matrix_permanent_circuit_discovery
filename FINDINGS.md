@@ -163,3 +163,6 @@ Generation 10 implements Mechanism F2 via an exact Schur-complement butterfly ar
   - `lean/PermanentProofs.lean`: Lean 4 / Mathlib4 formalizations.
 - **CUDA Tesla T4 Verified (`colab/sparse_permanent_cuda.cu`):** `n=32` in 0.65 ms, `n=40` in 0.93 ms, `n=48` in 4.54 ms, `n=56` in 72.55 ms (5/5 Glynn self-tests PASS). Extended to `n=64, 72`.
 - **CUDA Tesla T4 `n=64, 72` Verified (`colab/sparse_permanent_cuda.cu`):** `n=64` in **1.40 s** (`16,452` branches), `n=72` in **20.14 s** (`196,343` branches) with zero VRAM overflow.
+- **Gen 17 (`src/sparse_hafnian.cpp` & `colab/sparse_permanent_cuda.cu`):**
+  - Sparse Hafnian with Cascade-Branching + OpenMP: `n=60` in **1.510 ms** (`max_frontier=11`, `max_rel_err <= 3.36e-16` at `n=4..10`).
+  - CUDA Shared-Memory DP (`32 KB` on-chip for `fw <= 11`): `n=72` in **19.04 s** on Tesla T4.
