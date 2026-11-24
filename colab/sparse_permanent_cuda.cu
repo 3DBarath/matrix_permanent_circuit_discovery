@@ -22,7 +22,8 @@
 #include <vector>
 
 static constexpr uint64_t P61 = (1ULL << 61) - 1;
-static constexpr int MAX_GPU_FW = 16; // 2^16 = 65536 states per DP table
+static constexpr int MAX_GPU_FW = 13;
+static constexpr int GPU_BUF_BITS = 17; // 2^17 = 131,072 > 2^(13+deg) // 2^16 = 65536 states per DP table
 static constexpr int BLOCK_THREADS = 256;
 
 #define CUDA_CHECK(call)                                                       \
@@ -304,8 +305,8 @@ __global__ void frontier_dp_batch_kernel(
         return;
     }
 
-    uint64_t* buf0 = dp_workspace + (size_t)bid * 2 * (1ULL << MAX_GPU_FW);
-    uint64_t* buf1 = buf0 + (1ULL << MAX_GPU_FW);
+    uint64_t* buf0 = dp_workspace + (size_t)bid * 2 * (1ULL << GPU_BUF_BITS);
+    uint64_t* buf1 = buf0 + (1ULL << GPU_BUF_BITS);
     uint64_t* dp_val = buf0;
     uint64_t* nxt_val = buf1;
 
@@ -572,7 +573,7 @@ static uint64_t eval_leaves_gpu(const std::vector<CpuLeaf>& leaves) {
         CUDA_CHECK(cudaMemcpy(d_last_use, h_last_use.data(), h_last_use.size() * sizeof(int), cudaMemcpyHostToDevice));
     }
 
-    size_t ws_bytes = (size_t)num_leaves * 2 * (1ULL << MAX_GPU_FW) * sizeof(uint64_t);
+    size_t ws_bytes = (size_t)num_leaves * 2 * (1ULL << GPU_BUF_BITS) * sizeof(uint64_t);
     CUDA_CHECK(cudaMalloc(&d_workspace, ws_bytes));
 
     frontier_dp_batch_kernel<<<num_leaves, BLOCK_THREADS>>>(
