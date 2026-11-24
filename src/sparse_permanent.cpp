@@ -342,7 +342,7 @@ static uint64_t solve_hybrid(std::vector<AdjRow> rows, Stats& st, int depth) {
         int k = (int)comp.size();
         std::vector<int> order;
         int fw = order_min_frontier(comp, order);
-        if (k <= 12 || fw <= 11) {
+        if (k <= 14 || fw <= 15) {
             ans = mul61(ans, frontier_dp_flat(comp, order, st));
             if (ans == 0) return 0;
             continue;
@@ -353,7 +353,7 @@ static uint64_t solve_hybrid(std::vector<AdjRow> rows, Stats& st, int depth) {
             if ((int)d.size() < min_deg) min_deg = (int)d.size();
             for (const auto& kv : d) cdeg[kv.first]++;
         }
-        if ((min_deg == 3 && fw > 11) || fw > 16) {
+        if ((min_deg == 3 && fw > 15) || fw > 17) {
             int r_star = -1; std::pair<int,int> best_k = {1e9, 1e9};
             for (int r = 0; r < k; ++r) {
                 int mc = 1e9;
@@ -450,8 +450,8 @@ int main() {
     std::mt19937_64 rng(2026);
     std::printf("=== Gen 13 OpenMP + Flat-Array C++17 (threads=%d) on 3-Regular Weighted Graphs ===\n",
                 omp_get_max_threads());
-    for (int n : {32, 40, 48, 52, 56, 60}) {
-        int trials = (n <= 48) ? 3 : (n <= 56 ? 2 : 1);
+    for (int n : {48, 56, 60, 64, 68, 72}) {
+        int trials = (n <= 56) ? 2 : 1;
         double tot_ops = 0, tot_ms = 0, tot_br = 0;
         for (int t = 0; t < trials; ++t) {
             auto M = gen_d_reg(n, 3, rng);
