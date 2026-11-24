@@ -172,3 +172,7 @@ Generation 10 implements Mechanism F2 via an exact Schur-complement butterfly ar
   - Sparse Hafnian (`src/sparse_hafnian.cpp`): 3-regular `n=60` (`0.953 ms`), `n=64` (`2.447 ms`), `n=68` (`3.501 ms`), **`n=72` (`5.086 ms`)**; 4-regular `n=24` (`0.117 ms`).
   - `colab/perm4_17mul_search.cu`: 64-lane bit-sliced $\mathbb{F}_3/\mathbb{F}_5$ CUDA search for 17-mul $\mathrm{Perm}_4$.
   - `colab/sparse_permanent_cuda.cu`: `__launch_bounds__(256)` + atomic-free bijective dead-column compression.
+- **Gen 19 (Lean 4 Verified, Perm_4 17-Mul T4 Search, 4-Reg 97k ops):**
+  - **Lean 4 + Mathlib4 (`lean/PermanentProofs.lean`):** `perm_degree2_row_cofactor_collapse`, `deg1_peeling_row_cofactor`, `essential_var_eliminates_le_five`, and `essential_var_m6_forces_w_le_3` all typechecked cleanly in Colab (`zero sorry`).
+  - **Perm_4 17-Mul CUDA Search (`colab/perm4_17mul_search.cu` on Tesla T4):** Evaluated **6.55 billion circuits** (`256 x 256 x 100,000`) in `263.99 s` (**24.82 M circuits/sec**), **Best loss: 6 / 64** — no 17-mul circuit found, reinforcing 18 as tight.
+  - **4-Regular Sparse (`src/sparse_permanent.cpp --4reg`):** `n=28` reduced to **97,224 ops** (`3.61 ms`, `br=1.0`, `GLYNN PASS`).
