@@ -129,8 +129,56 @@ def verify_general_n_opttree() -> None:
         )
 
 
+def verify_gen4_butterfly_opttree() -> None:
+    print("\n=== 5. Gen 4 Fused Mobius-Zeta Butterfly OptTree Verification (n = 3..12) ===")
+    from src.general_n_butterfly_opttree import build_butterfly_opttree_circuit
+
+    for n in [3, 4, 5]:
+        sym_A = [[sp.Symbol(f"a{i}{j}") for j in range(n)] for i in range(n)]
+        sym_ref = sp.expand(
+            sum(sp.prod(sym_A[i][perm[i]] for i in range(n)) for perm in itertools.permutations(range(n)))
+        )
+        N = 1 << (n - 1)
+        _, ev = build_butterfly_opttree_circuit(n)
+        sym_out = sp.expand(ev(sym_A, p=None, inv_N=sp.Rational(1, N), inv_N2=sp.Rational(1, N * N)))
+        assert sym_out - sym_ref == 0, f"Gen 4 symbolic Q[A] failed at n={n}"
+    print("[PASS] Symbolic Q[A] residual = 0 for n = 3, 4, 5")
+
+    rng = random.Random(2026)
+    for n in [3, 4, 5, 6, 7, 8, 10, 12]:
+        plan, ev = build_butterfly_opttree_circuit(n)
+        trials = 25 if n <= 6 else (10 if n <= 8 else (5 if n == 10 else 2))
+        last_c = None
+        last_d = None
+        for p in (PRIME_61_A, PRIME_61_B):
+            for trial in range(trials):
+                A_int = [[rng.randrange(p) for _ in range(n)] for _ in range(n)]
+                c = OpCounter()
+                Aw = [[TrackedFieldElement(A_int[i][j], p, c) for j in range(n)] for i in range(n)]
+                out = ev(Aw, p)
+                ref = glynn_perm_mod(A_int, p)
+                assert out.val == ref, f"Gen 4 n={n} failed at p={p}, trial={trial}"
+                last_c = c
+                last_d = out.depth
+        assert last_c.non_scalar_muls == plan["non_scalar_muls"]
+        assert last_c.scalar_muls == 1
+        N = 1 << (n - 1)
+        gm = (n - 1) * N
+        gg = gm + n * ((N - 1) + 2 * (n - 1)) + (N - 1) + 1
+        msav = 100.0 * (1.0 - last_c.non_scalar_muls / gm)
+        gsav = 100.0 * (last_c.total_gates / gg - 1.0)
+        print(
+            f"[PASS] n={n:2d}: {2*trials:2d}/{2*trials:<2d} mod | "
+            f"muls={last_c.non_scalar_muls:,} (Glynn={gm:,}, -{msav:.1f}%) | "
+            f"total_gates={last_c.total_gates:,} (Glynn+Gray={gg:,}, {gsav:+.1f}%) | "
+            f"depth={last_d}"
+        )
+
+
 if __name__ == "__main__":
     verify_n4_circuits()
     verify_mode_b_lifting()
     verify_general_n_opttree()
+    verify_gen4_butterfly_opttree()
     print("\nALL VERIFICATIONS PASSED.")
+
