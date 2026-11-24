@@ -217,18 +217,22 @@ static int order_min_frontier(const std::vector<AdjRow>& rows, std::vector<int>&
     order.clear(); order.reserve(n);
     int cur_open = 0, max_fw = 0;
     for (int step = 0; step < n; ++step) {
-        int best_r = -1, best_delta = 1e9, best_deg = 1e9;
+        int best_r = -1, best_delta = 1e9, best_cl = -1, best_deg = 1e9, best_rem = 1e9;
         for (int r = 0; r < n; ++r) {
             if (used[r]) continue;
-            int no = 0, cl = 0;
+            int no = 0, cl = 0, rem_sum = 0;
             for (const auto& kv : rows[r]) {
                 int c = kv.first;
                 if (!opened[c] && col_rem[c] > 1) ++no;
                 if (opened[c] && col_rem[c] == 1) ++cl;
+                rem_sum += col_rem[c];
             }
             int delta = no - cl, deg = (int)rows[r].size();
-            if (delta < best_delta || (delta == best_delta && deg < best_deg)) {
-                best_delta = delta; best_deg = deg; best_r = r;
+            if (delta < best_delta ||
+                (delta == best_delta && (cl > best_cl ||
+                (cl == best_cl && (deg < best_deg ||
+                (deg == best_deg && rem_sum < best_rem)))))) {
+                best_delta = delta; best_cl = cl; best_deg = deg; best_rem = rem_sum; best_r = r;
             }
         }
         used[best_r] = 1; order.push_back(best_r);
