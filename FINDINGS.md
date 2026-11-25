@@ -140,8 +140,8 @@ Generation 10 implements Mechanism F2 via an exact Schur-complement butterfly ar
   - $n = 8$: **318 muls** (vs. 896 Glynn, **−64.5%**) | Gates: 2,311 (Gen 9) / 2,466 (Gen 10)
   - $n = 10$: **1,152 muls** (vs. 4,608 Glynn, **−75.0%**) | Gates: **10,276** (Gen 9, **−1.3%** vs. 10,410 Glynn) / 12,125 (Gen 10)
   - $n = 12$: **3,941 muls** (vs. 22,528 Glynn, **−82.5%**) | Gates: **42,945** (Gen 9, **−13.1%** vs. 49,404 Glynn) / 57,188 (Gen 10)
-  - $n = 14$: **14,485 muls** (vs. 106,496 Glynn, **−86.4%**)
-  - $n = 16$: **52,488 muls** (vs. 491,520 Glynn, **−89.3%**, $1.602 \cdot 2^{15}$)
+  - $n = 14$: **14,485 muls** (vs. 106,496 Glynn, **−86.4%**) | Gates: **185,002** (Gen 9, **−19.5%** vs. 229,726 Glynn, depth 119)
+  - $n = 16$: **52,488 muls** (vs. 491,520 Glynn, **−89.3%**, $1.602 \cdot 2^{15}$) | Gates: **789,626** (Gen 9, **−24.7%** vs. 1,049,040 Glynn, depth 137)
 * **C++17 Polynomial-Ring SIMD Wall-Clock Speedup (`src/bench_poly8_mod61.cpp`, $\mathbb{F}_{2^{61}-1}[x]/(x^8-2)$):**
   - $n=4$: `1.62 µs` vs. `1.77 µs` (**1.09×**); $n=6$: `7.94 µs` vs. `10.90 µs` (**1.37×**); $n=8$: `32.10 µs` vs. `62.70 µs` (**1.95×**); $n=10$: `125.96 µs` vs. `302.79 µs` (**2.40×**); $n=11$: `243.51 µs` vs. `695.89 µs` (**2.86×**); $n=12$: `497.21 µs` vs. `1,403.08 µs` (**2.82×**). Bit-exact 8/8 across all sizes.
 
