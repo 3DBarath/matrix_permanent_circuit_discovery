@@ -59,7 +59,7 @@
 
 \title{%
     \textbf{Exact Sub-$2^n$ Matrix Permanent Evaluation via Iterated Series Reductions and Min-Frontier Path Decomposition}\\[0.4em]
-    \large\textsf{Part II: Crashing Through the Hypercube Floor for Bounded-Degree and Sparse Graphs}
+    \large\textsf{Part II: Empirical Sub-$2^n$ Scaling on Bounded-Degree and Sparse Graphs}
 }
 
 \author{
@@ -72,7 +72,7 @@
 \maketitle
 
 \begin{abstract}
-Computing the permanent of an $n \times n$ matrix is canonical for Valiant's counting class $\sharpp$. While recent breakthroughs in algebraic circuit discovery (Part~I) achieved the theoretical hypercube floor of $O(2^n)$ non-scalar multiplications (and $O(n \cdot 2^n)$ total arithmetic operations) for general dense matrices, all known dense algorithms remain intrinsically bound by the exponential base $2$. In this work, we demonstrate that for sparse, bounded-degree, and structured bipartite matrices, the $2^n$ barrier can be bypassed. We introduce an exact solver combining: (1) iterated zero-division graph reductions operating to a fixed point, comprising forced degree-1 edge peeling, degree-2 series contractions that merge neighbor vertices algebraically in $O(1)$ time, and bipartite connected-component factorization with early Hall-condition detection; (2) a greedy min-frontier row-ordering heuristic that constructs compact path decompositions of the underlying incidence graph, restricting dynamic programming state allocations strictly to the active cut frontier; and (3) a hybrid dispatch to the Generation~9 Fused M\"obius--Zeta Butterfly OptTree engine for dense reduced components. 
+Computing the permanent of an $n \times n$ matrix is canonical for Valiant's counting class $\sharpp$. While recent breakthroughs in algebraic circuit discovery (Part~I) achieved $O(2^n)$ non-scalar multiplications (and $O(n \cdot 2^n)$ total arithmetic operations) for general dense matrices, all known dense algorithms remain intrinsically bound by the exponential base $2$. In this work, we demonstrate that for sparse, bounded-degree, and structured bipartite matrices, empirical scaling well below $2^n$ can be achieved without sacrificing exactness (without claiming a new worst-case asymptotic theorem across all graphs, and contrasting with proved worst-case bounds~\cite{servediowan2005,fominhoie2006,izumiwadayama2012,bjorklund2012,bjorklund2016}). We introduce an exact solver combining: (1) iterated zero-division graph reductions operating to a fixed point, comprising forced degree-1 edge peeling, degree-2 series contractions that merge neighbor vertices algebraically in $O(\deg(c_1)+\deg(c_2))$ time ($O(1)$ when neighbor degrees are $O(1)$), and bipartite connected-component factorization with early Hall-condition detection; (2) a greedy min-frontier row-ordering heuristic that targets compact path decompositions of the underlying incidence graph, restricting dynamic programming state allocations strictly to the active cut frontier; and (3) a repository implementation extension providing hybrid dispatch to the Generation~9 Fused M\"obius--Zeta Butterfly OptTree engine for small dense components. 
 
 The resulting algorithm is verified bit-exact against Glynn's baseline over 61-bit Mersenne primes $\F_p$ across all graph structures. In empirical fits on random 3-regular bipartite graphs (high-expansion stress tests; not a proved worst-case bound across all 3-regular graphs), the algorithm scales as $\mathbf{1.238^n}$, evaluating $n = 28$ instances in \textbf{5,118 DP operations} ($52,446\times$ fewer than dense $2^n$) in \textbf{3.60 ms}. On random 4-regular bipartite graphs, it achieves an empirical scaling of $\mathbf{1.416^n}$, computing $n = 24$ in \textbf{19.71 ms} ($516.6\times$ fewer operations). This establishes a practical, verified exact permanent solver operating deeply below $2^n$ without floating-point approximations.
 \end{abstract}
@@ -93,16 +93,16 @@ For arbitrary dense matrices, Ryser's classical inclusion-exclusion algorithm \c
 However, for dense matrices over general fields, the exponential base $2$ is bounded from below by the necessity of sampling the full Boolean hypercube $\{-1, 1\}^n$ to annihilate lower-degree cross-terms.
 
 \paragraph{The Sparse Frontier and Related Work.}
-In many practical scenarios---such as physical optical circuits with bounded optical depth, planar lattice models, and sparse matching problems---the incidence matrix $A$ is sparse. A matrix is termed $d$-regular if every row and column has exactly $d$ non-zero entries. On bounded-degree graphs, general theoretical bounds such as Servedio--Wan and bounded-average-degree DP ($O^*(2^{(1 - 1/(3.55d))n})$, roughly $1.87^n$ at $d = 3$) yield loose exponents, while practical zero-skipping Gray-code solvers (such as SpaRyser and SkipPer) skip zero-product iterations without guaranteeing a tight base on regular instances. Because the pathwidth of a $2n$-vertex 3-regular bipartite graph is bounded near $n/3$ in the worst case, straightforward frontier DP sits near $2^{n/3} \approx 1.26^n$; combining degree-2 contractions with min-frontier ordering pushes empirical scaling on random 3-regular instances down to $1.238^n$ (and $1.188^n$ with Or-Opt SA). 
+In many practical scenarios---such as physical optical circuits with bounded optical depth, planar lattice models, and sparse matching problems---the incidence matrix $A$ is sparse. A matrix is termed $d$-regular if every row and column has exactly $d$ non-zero entries. On bounded-degree graphs, rigorous worst-case sub-$2^n$ bounds are already established: Servedio and Wan~\cite{servediowan2005} and bounded-average-degree DP~\cite{izumiwadayama2012} give $O^*(2^{(1 - 1/(3.55d))n})$ (roughly $1.87^n$ at $d = 3$), Bj\"orklund~\cite{bjorklund2012,bjorklund2016} established $O^*(2^{n/2})$ and below-all-subsets bounds for perfect matchings (with fast subset convolution~\cite{bhkk2007} and Hafnian generalizations~\cite{bgq2019}), and practical zero-skipping Gray-code solvers (such as SpaRyser and SkipPer~\cite{kaya2019}) skip zero-product iterations without guaranteeing a tight base on regular instances. Because the pathwidth of an $m$-vertex cubic graph satisfies $pw(G) \le m/6 + o(m)$~\cite{fominhoie2006}, a $2n$-vertex 3-regular bipartite graph has pathwidth bounded near $n/3$ in the worst case, placing straightforward frontier DP near $2^{n/3} \approx 1.26^n$; combining degree-2 contractions with min-frontier ordering pushes empirical scaling on random 3-regular instances down to $1.238^n$ (and $1.188^n$ with the repository's Or-Opt SA extension).
 
 While approximate algorithms (such as the Jerrum--Sinclair--Vigoda Markov Chain Monte Carlo polynomial-time approximation scheme \cite{jsv2004}) exist for non-negative matrices, \textbf{exact} algebraic permanent evaluation over arbitrary finite fields $\F_p$ (or complex fields $\mathbb{C}$) has remained a major computational bottleneck. Standard dense solvers fail to exploit sparsity effectively because hypercube polarization treats all coordinates symmetrically.
 
 \paragraph{Our Contributions.}
-In this paper, we establish an exact, deterministic algorithm that shatters the $2^n$ barrier for sparse matrices:
+In this paper, we present an exact, deterministic solver that achieves empirical sub-$2^n$ scaling on sparse and bounded-degree matrices (without claiming a new worst-case asymptotic theorem beyond the pathwidth and reduction framework):
 \begin{enumerate}[leftmargin=*]
-    \item \textbf{Exact Degree-2 Series Contraction:} We prove that any degree-2 row or column in a bipartite graph can be contracted in $O(1)$ operations by algebraically merging its neighbors, reducing the problem dimension from $n$ to $n-1$ while preserving $\Perm(A)$ identically.
-    \item \textbf{Min-Frontier Path Decomposition:} We formulate a greedy frontier-minimizing row-ordering algorithm that bounds the active column subset at any stage of the computation by the graph's pathwidth $pw(G)$, reducing the state space from $2^n$ to $2^{pw(G)}$.
-    \item \textbf{Verified Sub-$2^n$ Scaling:} We verify the solver across extensive benchmark suites against trusted modular Glynn implementations. On 3-regular weighted graphs, our solver achieves an empirical scaling of $\mathbf{1.238^n}$, solving $n = 28$ instances in \textbf{3.60 ms} with only \textbf{5,118 operations} (a $52,446\times$ reduction compared to $2^n = 268,435,456$).
+    \item \textbf{Exact Degree-2 Series Contraction:} We prove that any degree-2 row or column in a bipartite graph can be contracted in $O(\deg(c_1)+\deg(c_2))$ operations ($O(1)$ when neighbor degrees are $O(1)$, and up to $O(n)$ as degrees grow under iterated contraction; algebraic cancellation to $0$ can also drop degrees further) by algebraically merging its neighbors, reducing the problem dimension from $n$ to $n-1$ while preserving $\Perm(A)$ identically.
+    \item \textbf{Min-Frontier Path Decomposition:} We formulate a greedy frontier-minimizing row-ordering heuristic targeting small frontier width $fw(\pi) \approx pw(G)$ (without a worst-case guarantee of achieving $pw(G)$), reducing the DP state space from $2^n$ to $2^{fw(\pi)}$.
+    \item \textbf{Verified Sub-$2^n$ Scaling:} We verify the solver across extensive benchmark suites against trusted modular Glynn implementations. On random 3-regular weighted graphs, our solver achieves an empirical scaling of $\mathbf{1.238^n}$, solving $n = 28$ instances in \textbf{3.60 ms} with only \textbf{5,118 operations} (a $52,446\times$ reduction compared to $2^n = 268,435,456$).
 \end{enumerate}
 
 \section{Iterated Exact Graph Reductions}
@@ -116,7 +116,7 @@ If row $u_r$ has degree 1 with single non-zero entry $A_{r, c} = w \neq 0$, then
 \begin{equation}
 \Perm(A) = w \cdot \Perm(A_{\setminus r, \setminus c}),
 \end{equation}
-where $A_{\setminus r, \setminus c}$ is the $(n-1) \times (n-1)$ submatrix formed by removing row $r$ and column $c$.
+where $A_{\setminus r, \setminus c}$ is the $(n-1) \times (n-1)$ submatrix formed by removing row $r$ and column $c$ (with the convention $\Perm(\text{empty } 0\times 0) = 1$ for $n = 1$).
 \end{lemma}
 
 The same property holds symmetrically for any column of degree 1.
@@ -142,7 +142,7 @@ By cofactor expansion along row $r$:
 \begin{equation}
 \Perm(A) = w_1 \Perm(A_{\setminus r, \setminus c_1}) + w_2 \Perm(A_{\setminus r, \setminus c_2}).
 \end{equation}
-In both $(n-1) \times (n-1)$ matrices $A_{\setminus r, \setminus c_1}$ and $A_{\setminus r, \setminus c_2}$, all columns other than $c_1$ and $c_2$ are identical. By multilinearity of the permanent with respect to its columns:
+In both $(n-1) \times (n-1)$ matrices $A_{\setminus r, \setminus c_1}$ and $A_{\setminus r, \setminus c_2}$, all columns other than $c_1$ and $c_2$ are identical. Using column-permutation invariance of $\Perm$ to align the remaining column $c_2$ in $A_{\setminus r, \setminus c_1}$ with $c_1$ in $A_{\setminus r, \setminus c_2}$, multilinearity of the permanent with respect to its columns yields:
 \begin{equation}
 w_1 \Perm(A_{\setminus r, \setminus c_1}) + w_2 \Perm(A_{\setminus r, \setminus c_2}) = \Perm(\tilde{A}),
 \end{equation}
@@ -161,7 +161,7 @@ preserves $\Perm(A) = \Perm(A')$ over any field $\F$.
 
 If the bipartite incidence graph decomposes into $k$ connected components $G = G_1 \sqcup \dots \sqcup G_k$ with row sets $U_m$ and column sets $V_m$:
 \begin{itemize}[leftmargin=*]
-    \item \textbf{Hall Violation:} If for any component $|U_m| \neq |V_m|$, then no perfect matching can exist, and $\Perm(A) = 0$ immediately.
+    \item \textbf{Component Balance (Hall) Violation:} If for any component $|U_m| \neq |V_m|$ (a component-balance violation implying a Hall violation on $U_m$ or $V_m$), then no perfect matching can exist, and $\Perm(A) = 0$ immediately.
     \item \textbf{Factorization:} If $|U_m| = |V_m| = n_m$ for all $m$, the matrix can be permuted into block diagonal form, yielding:
     \begin{equation}
     \Perm(A) = \prod_{m=1}^k \Perm(A[U_m, V_m]).
@@ -192,7 +192,7 @@ Finding the ordering $\pi$ that minimizes $fw(\pi)$ is equivalent to computing t
 \begin{equation}
 \mathrm{cost}(r) = \Delta \mathrm{Open}(r) - \Delta \mathrm{Close}(r),
 \end{equation}
-where $\Delta \mathrm{Open}(r)$ is the count of new columns opened by row $r$, and $\Delta \mathrm{Close}(r)$ is the count of columns whose last non-zero appearance is in row $r$.
+where $\Delta \mathrm{Open}(r)$ is the count of previously unopened columns appearing in row $r$, and $\Delta \mathrm{Close}(r)$ is the count of columns whose last non-zero appearance is in row $r$ (columns whose first and last appearance is row $r$ both open and close at $r$, contributing net change $0$).
 
 \subsection{Frontier State Compression}
 
@@ -200,19 +200,19 @@ Standard Ryser DP stores all $2^n$ column subsets. In contrast, our frontier DP 
 \begin{equation}
 \mathrm{DP}_t : 2^{fw(t)} \to \F_p.
 \end{equation}
-When a column becomes dead at step $t$, all states where that column was not matched are discarded (as they cannot form a full matching), and the dead column's bit is marginalized out, compressing the active table size back to $2^{fw(t+1)}$.
+When a column becomes dead at step $t$, all states where that column was not matched are discarded (as they cannot form a full matching), and the dead column's bit is marginalized out, compressing the active table size to $2^{fw(t)}$.
 
 \begin{proposition}[Frontier DP Complexity]
 The number of dynamic programming transitions required to evaluate a reduced matrix with path decomposition ordering $\pi$ is bounded by:
 \begin{equation}
 T(n) \le O\left(n \cdot d \cdot 2^{fw(\pi)}\right),
 \end{equation}
-where $d$ is the maximum row degree.
+where $d$ is the maximum row degree of the reduced matrix (which can exceed the input graph's degree after degree-2 contractions). When dead columns are projected on-the-fly into $\mathrm{DP}_t$, space remains $O(2^{fw(\pi)})$ (whereas materializing an intermediate table over $F_{t-1} \cup \mathrm{supp}(A_{\pi_t, :})$ before compression can use $2^{fw(\pi)+d}$ space).
 \end{proposition}
 
 \subsection{Adaptive Cascade-Branching at Degree 3}
 
-When the graph reductions reach a fixed point where every remaining vertex has degree $\ge 3$, the system evaluates the frontier cut width. If the frontier cut exceeds a moderate threshold, the algorithm activates \textbf{Adaptive Cascade-Branching} on an edge $(r^*, c^*)$ of minimum degree:
+When the graph reductions reach a fixed point where every remaining vertex has degree $\ge 3$, the system evaluates the frontier cut width. In the reference implementation (\texttt{src/sparse\_permanent.py}), if the component size $k > 12$ and either the minimum row degree is $3$ with $fw > 9$ or $fw > 16$, the algorithm activates \textbf{Adaptive Cascade-Branching} on an edge $(r^*, c^*)$ chosen by selecting a row $r^*$ of minimum degree (breaking ties by minimum neighbor column degree) and its minimum-degree column $c^*$:
 \begin{equation}
 \Perm(A) = w^* \cdot \Perm(A_{\setminus r^*, \setminus c^*}) + \Perm(A_{- (r^*, c^*)}).
 \end{equation}
@@ -220,10 +220,10 @@ When the graph reductions reach a fixed point where every remaining vertex has d
 \begin{proposition}[First-Step Cascade-Branching Recurrence]
 Let $G$ be a 3-regular bipartite graph. Selecting an edge $(r^*, c^*)$:
 \begin{enumerate}[leftmargin=*]
-    \item \textbf{Inclusion Branch ($A_{\setminus r^*, \setminus c^*}$):} Removing row $r^*$ and column $c^*$ deletes 4 adjacent edges, immediately reducing 4 neighboring vertices to degree 2.
+    \item \textbf{Inclusion Branch ($A_{\setminus r^*, \setminus c^*}$):} Removing row $r^*$ and column $c^*$ deletes 4 adjacent edges, immediately reducing 4 neighboring vertices to degree 2 (or fewer if they share edges).
     \item \textbf{Exclusion Branch ($A_{- (r^*, c^*)}$):} Deleting edge $(r^*, c^*)$ immediately reduces vertex $r^*$ and vertex $c^*$ to degree 2.
 \end{enumerate}
-In both branches, the appearance of degree-2 vertices immediately triggers Theorem~\ref{thm:deg2_contraction} series contractions, reducing the first branching step to sizes $(n - 5, n - 2)$ (or smaller if parallel edges/degree-1 vertices form). Locally, the recurrence $T(n) \le T(n - 5) + T(n - 2)$ has characteristic root $\lambda \approx \mathbf{1.236}$; note that contracting degree-2 vertices can merge degree-3 neighbors into vertices of degree $4$, so deeper branching steps need not remain 3-regular (consistent with the empirical $1.303^n$ deep-branching scaling in Section~4.2).
+In both branches, the appearance of degree-2 vertices immediately triggers Theorem~\ref{thm:deg2_contraction} series contractions. In the exclusion branch, contracting $r^*$ and $c^*$ reduces the dimension to $n - 2$ (or smaller). In the inclusion branch, when $(r^*, c^*)$ lies in no $C_4$ (e.g., girth $\ge 6$ or $C_4$-free neighborhoods), the four degree-2 neighbors contract independently to yield dimension $n - 5$ (or smaller if parallel edges or degree-1 vertices form); however, if $(r^*, c^*)$ participates in one or more $C_4$s, contracting one degree-2 neighbor merges another into a degree-3 vertex, so the inclusion branch reduces only to $n - 4$ (one $C_4$), $n - 3$ (two $C_4$s sharing $(r^*, c^*)$), or $n - 2$ (e.g., $K_{3,3}$). Under $C_4$-free neighborhoods, the local first-step recurrence $T(n) \le T(n - 5) + T(n - 2)$ has characteristic root $\lambda \approx \mathbf{1.236}$; moreover, contracting degree-2 vertices can merge degree-3 neighbors into vertices of degree $4$ (or higher), so deeper branching steps need not remain 3-regular (consistent with the empirical $1.303^n$ deep-branching scaling in Section~4.2).
 \end{proposition}
 
 \section{Experimental Results}
@@ -259,9 +259,9 @@ Graph Family & $n$ & Avg DP Ops & Dense $2^n$ Ops & Ratio (Speedup) & Max Fronti
 
 Fitting the operation count $T(n) = C \cdot \alpha^n$ yields the following empirical bases:
 \begin{itemize}[leftmargin=*]
-    \item \textbf{3-Regular Bipartite Graphs:} $\alpha \approx \mathbf{1.216}$--$\mathbf{1.238}$ in frontier-DP regime ($\mathbf{1.2062^n}$ on 0--1 unweighted instances, solving $n = 40$ in $7{,}106$ ops / $127$\,ms) and $\mathbf{1.303}$ across deep cascade-branching up to $n = 48$. With 128-bit mixed-vertex DP, 0-op Boolean reachability, and Dulmage--Mendelsohn + Or-Opt SA ordering, 3-regular scaling improves further to $\mathbf{1.188^n}$ at $n = 60$.
+    \item \textbf{3-Regular Bipartite Graphs:} $\alpha \approx \mathbf{1.216}$--$\mathbf{1.238}$ in frontier-DP regime ($\mathbf{1.2062^n}$ on 0--1 unweighted instances, solving $n = 40$ in $7{,}106$ ops / $127$\,ms) and $\mathbf{1.303}$ across deep cascade-branching up to $n = 48$. With the repository's implementation extensions (128-bit mixed-vertex DP, 0-op Boolean reachability, and Dulmage--Mendelsohn + Or-Opt SA ordering), 3-regular scaling improves further to $\mathbf{1.188^n}$ at $n = 60$.
     \item \textbf{4-Regular Bipartite Graphs:} $\alpha \approx \mathbf{1.416}$ in standard frontier-DP, dropping by $46\%$ in operations to $\mathbf{1.314^n}$ under the 128-bit mixed-vertex Dulmage--Mendelsohn engine.
-    \item \textbf{Sparse Random \& Banded Matrices:} 15--25\% density random matrices scale at $\mathbf{1.8501^n}$ (vs.\ Ryser's $2.3235^n$), while banded matrices ($w \in \{4,5,6\}$) achieve strict $O(n)$ linear scaling, evaluating $n = 32$ in under $1$\,ms.
+    \item \textbf{Sparse Random \& Banded Matrices:} 15--25\% density random matrices scale at $\mathbf{1.8501^n}$ (vs.\ a finite-$n$ exponential fit of $2.3235^n$ to Ryser's $\Theta(n \cdot 2^n)$ baseline), while banded matrices ($w \in \{4,5,6\}$) achieve strict $O(n)$ linear scaling, evaluating $n = 32$ in under $1$\,ms.
 \end{itemize}
 
 \subsection{Native C++17 \& OpenMP Execution up to $n = 72$ (Generations 12--15)}
@@ -297,14 +297,14 @@ To evaluate GPU-batched frontier DP, we ported the engine to CUDA (\texttt{colab
     \item \textbf{Gen 17--18 Optimizations:} Adding $32$\,KB on-chip \texttt{\_\_shared\_\_} DP for \texttt{fw} $\le 11$ (Gen~17) reduced $n=72$ to $\mathbf{19.04}$\,s; adding \texttt{\_\_launch\_bounds\_\_(256)} and atomic-free bijective dead-column compression (Gen~18) achieved $\mathbf{72.36}$\,ms ($n=56$), $\mathbf{1.37}$\,s ($n=64$), and $\mathbf{19.80}$\,s ($n=72$).
 \end{itemize}
 
-\takeaway{Breaking the $2^n$ Barrier}{While Part~I established that the base $2.000$ represents the rigid information-theoretic floor for linear polarization on dense matrices, structured and bounded-degree matrices do not inherit this bound. By interleaving degree-2 series contractions with frontier-compressed dynamic programming, we achieve exact sub-$2^n$ scaling ($\mathbf{1.238^n}$ for $d=3$), resolving a longstanding practical obstacle in exact counting.}
+\takeaway{Sub-$2^n$ Scaling on Sparse Graphs}{While Part~I established $O(2^n)$ non-scalar multiplications for linear polarization on dense matrices, structured and bounded-degree matrices exhibit much smaller effective cut widths. By interleaving degree-2 series contractions with frontier-compressed dynamic programming, we achieve empirical sub-$2^n$ scaling ($\mathbf{1.238^n}$ for random $d=3$ instances) without sacrificing exactness, complementing proved worst-case bounds~\cite{servediowan2005,fominhoie2006,izumiwadayama2012,bjorklund2012,bjorklund2016}.}
 
 \section{Conclusion and Future Outlook}
 
-We have demonstrated an exact, fully verified permanent solver that achieves exponential bases strictly below $2$ for sparse bipartite matrices over arbitrary fields. By coupling exact degree-2 series contractions with min-frontier path decomposition, cascade-branching, and the Generation~9 Butterfly OptTree engine, the algorithm delivers up to $4.05 \times 10^{13}\times$ operation reductions at $n = 72$.
+We have demonstrated an exact, fully verified permanent solver that achieves empirical exponential bases strictly below $2$ on bounded-degree and sparse bipartite benchmarks over arbitrary fields. By coupling exact degree-2 series contractions with min-frontier path decomposition, cascade-branching, and the repository's Generation~9 Butterfly OptTree dense-fallback extension, the algorithm delivers up to $4.05 \times 10^{13}\times$ operation reductions at $n = 72$.
 
-{\emergencystretch 3em
-In Generation~16--20, this architecture was extended across five additional frontiers: (1) complex-valued Boson Sampling (\texttt{src/boson\_\-sampling\_\-complex.cpp}) using compensated \texttt{long double} accumulation, achieving machine-precision accuracy and solving $n = 60$ unitary permanents in $192.15$\,ms; (2) exact sub-$2^n$ Sparse Hafnians (\texttt{src/sparse\_\-hafnian.cpp}) with Cascade-Branching and OpenMP for non-bipartite Gaussian Boson Sampling graphs, solving 3-regular $n = 72$ in $5.09$\,ms and scaling to $n = 96$ in $112.64$\,ms (and 4-regular $n = 32$ in $0.551$\,ms); (3) a batched CUDA GPU kernel (\texttt{colab/sparse\_\-permanent\_\-cuda.cu}) with $32$\,KB on-chip shared-memory DP, \texttt{\_\_launch\_\-bounds\_\_(256)}, and atomic-free compression, solving $n = 64$ in $1.37$\,s and $n = 72$ in $19.04$\,s--$19.80$\,s on a Tesla T4; (4) Or-Opt + column-closing + remaining-degree frontier ordering and \texttt{fw} $\le 16$ flat-array DP (\texttt{src/sparse\_\-permanent.cpp}), scaling 3-regular weighted permanents to $n = 80$ ($744.24$\,M ops, $1.62 \times 10^{15}\times$ fewer than $2^{80}$, $21.77$\,s) and 4-regular (\texttt{--4reg}) to $n = 28$ in $94,364$ ops (\texttt{br} $= 0$) and $n = 36$ in $42.48$\,ms ($1.80$\,M ops); and (5) Lean~4 + Mathlib4 formalizations (\texttt{lean/Permanent\-Proofs.lean}), where full Laplace cofactor expansion and row-collapse theorems (\texttt{permanent\_\-succ\_\-row\_\-zero}, \texttt{permanent\_\-deg1\_\-peeling}, and \texttt{permanent\_\-deg2\_\-collapse}) typechecked cleanly with zero \texttt{sorry}s.
+{\emergencystretch 4em
+In Generation~16--20, the repository was extended across five additional implementation frontiers (beyond the core bipartite algorithm analyzed in Sections~2--3): (1) complex-valued Boson Sampling (\texttt{src/boson\_\-sampling\_\-complex.cpp}) using compensated \texttt{long double} accumulation, solving sparse 3-regular $n = 60$ unitary permanents in $192.15$\,ms (general dense $n=60$ unitaries remain $\sim 2^{60}$ operations, and finite-precision compensated \texttt{long double} does not guarantee machine-precision relative accuracy under catastrophic cancellation in general complex/unitary matrices); (2) exact sub-$2^n$ Sparse Hafnians (\texttt{src/sparse\_\-hafnian.cpp}, cf.~\cite{bgq2019}) with Cascade-Branching and OpenMP for non-bipartite Gaussian Boson Sampling graphs, solving 3-regular $n = 72$ in $5.09$\,ms and scaling to $n = 96$ in $112.64$\,ms (and 4-regular $n = 32$ in $0.551$\,ms); (3) a batched CUDA GPU kernel (\texttt{colab/sparse\_\-permanent\_\-cuda.cu}) with $32$\,KB on-chip shared-memory DP, \texttt{\_\_launch\_\-bounds\_\_(256)}, and atomic-free compression, solving $n = 64$ in $1.37$\,s and $n = 72$ in $19.04$\,s--$19.80$\,s on a Tesla T4; (4) Or-Opt + column-closing + remaining-degree frontier ordering and \texttt{fw} $\le 16$ flat-array DP (\texttt{src/sparse\_\-permanent.cpp}), scaling 3-regular weighted permanents to $n = 80$ ($744.24$\,M ops, $1.62 \times 10^{15}\times$ fewer than $2^{80}$, $21.77$\,s) and 4-regular (\texttt{--4reg}) to $n = 28$ in $94,364$ ops (\texttt{br} $= 0$) and $n = 36$ in $42.48$\,ms ($1.80$\,M ops); and (5) Lean~4 + Mathlib4 formalizations (\texttt{lean/Permanent\-Proofs.lean}), where full Laplace cofactor expansion and row-collapse theorems (\texttt{permanent\_\-succ\_\-row\_\-zero}, \texttt{permanent\_\-deg1\_\-peeling}, and \texttt{permanent\_\-deg2\_\-collapse}) typechecked cleanly with zero \texttt{sorry}s.
 }
 
 \section*{Reproducibility Package}
@@ -314,13 +314,21 @@ All source code, C++17/CUDA kernels, Lean~4 formalizations, and verification sui
 \section*{AI Assistance Disclosure}
 AI coding and writing assistants were used during algorithm discovery, C++17/CUDA/Lean~4 implementation, and manuscript drafting. All mathematical proofs, bit-exact Glynn/brute-force checks, hardware benchmarks, and Lean~4 + Mathlib4 formalizations were verified deterministically by the author.
 
-\begin{thebibliography}{9}
+\begin{thebibliography}{99}
 \bibitem{valiant1979} L.~G.~Valiant, ``The complexity of computing the permanent,'' \emph{Theoretical Computer Science}, vol.~8, no.~2, pp.~189--201, 1979.
 \bibitem{ryser1963} H.~J.~Ryser, \emph{Combinatorial Mathematics}, Carus Mathematical Monographs, No.~14, Mathematical Association of America, 1963.
 \bibitem{glynn2010} D.~G.~Glynn, ``The permanent of a square matrix,'' \emph{European Journal of Combinatorics}, vol.~31, no.~7, pp.~1887--1891, 2010.
-\bibitem{part1_paper} Barath~B, ``Breaking Glynn's Barrier: Exact $O(2^n)$-Multiplication Circuits for the Matrix Permanent via Degree-Preserving Dual-Ball Annihilation and M\"obius--Zeta Butterflies,'' \emph{Preprint}, 2026.
+\bibitem{part1_paper} Barath~B, ``Exact $O(2^n)$-Multiplication Circuits for the Matrix Permanent via Degree-Preserving Dual-Ball Annihilation and M\"obius--Zeta Butterflies,'' \emph{Preprint}, 2026.
 \bibitem{aaronson2011} S.~Aaronson and A.~Arkhipov, ``The computational complexity of linear optics,'' in \emph{Proceedings of the 43rd Annual ACM Symposium on Theory of Computing (STOC)}, pp.~333--342, 2011.
 \bibitem{jsv2004} M.~Jerrum, A.~Sinclair, and E.~Vigoda, ``A polynomial-time approximation algorithm for the permanent of a matrix with non-negative entries,'' \emph{Journal of the ACM}, vol.~51, no.~4, pp.~671--697, 2004.
+\bibitem{servediowan2005} R.~A.~Servedio and A.~Wan, ``Computing sparse permanents faster,'' \emph{Information Processing Letters}, vol.~96, no.~3, pp.~89--92, 2005.
+\bibitem{fominhoie2006} F.~V.~Fomin and K.~H\o ie, ``Pathwidth of cubic graphs and exact algorithms,'' \emph{Information Processing Letters}, vol.~97, no.~5, pp.~191--196, 2006.
+\bibitem{bhkk2007} A.~Bj\"orklund, T.~Husfeldt, P.~Kaski, and M.~Koivisto, ``Fourier meets M\"obius: fast subset convolution,'' in \emph{Proceedings of the 39th Annual ACM Symposium on Theory of Computing (STOC)}, pp.~67--74, 2007.
+\bibitem{izumiwadayama2012} T.~Izumi and T.~Wadayama, ``A new direction for counting perfect matchings,'' in \emph{Proceedings of the 53rd Annual IEEE Symposium on Foundations of Computer Science (FOCS)}, pp.~591--598, 2012.
+\bibitem{bjorklund2012} A.~Bj\"orklund, ``Counting perfect matchings as fast as Ryser,'' in \emph{Proceedings of the 23rd Annual ACM-SIAM Symposium on Discrete Algorithms (SODA)}, pp.~914--921, 2012.
+\bibitem{bjorklund2016} A.~Bj\"orklund, ``Below all subsets for some permutational counting problems,'' in \emph{15th Scandinavian Symposium and Workshops on Algorithm Theory (SWAT)}, LIPIcs, vol.~53, pp.~17:1--17:11, 2016.
+\bibitem{bgq2019} A.~Bj\"orklund, B.~Gupt, and N.~Quesada, ``A faster hafnian formula for complex matrices and its benchmarking on a supercomputer,'' \emph{ACM Journal of Experimental Algorithmics}, vol.~24, art.~1.11, pp.~1--17, 2019.
+\bibitem{kaya2019} K.~Kaya, ``Parallel algorithms for computing sparse matrix permanents,'' \emph{Turkish Journal of Electrical Engineering and Computer Sciences}, vol.~27, no.~6, pp.~4284--4297, 2019.
 \end{thebibliography}
 
 \end{document}
