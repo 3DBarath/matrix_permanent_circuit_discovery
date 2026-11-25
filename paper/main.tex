@@ -156,6 +156,23 @@ Combining Theorems~\ref{thm:deg_pres} and~\ref{thm:mech_f} with Parseval boundar
   \mathrm{Opt}_{\mathrm{F2}}(n) &= \min_{1 \le a \le \lfloor n/2 \rfloor} \Big( T(a) + T(n-a) + \binom{n}{a} \Big).
 \end{align}
 
+\begin{theorem}[Asymptotic $O(2^n)$ Multiplicative Complexity]
+\label{thm:asymptotic_2n}
+For all $n \ge 3$, the recurrence satisfies $\mathrm{Opt}_{\mathrm{F2}}(n) \le 2^{n-1} + o(2^n) = O(2^n)$.
+\end{theorem}
+
+\begin{proof}
+First, taking $a = 1$ at every step gives the trivial upper bound $T(k) \le \sum_{j=2}^{k} K(n,j) \le k \cdot K(n,k)$ for all $1 \le k \le n - 1$. At the root, choosing the balanced split $a = \lfloor n/2 \rfloor$, $b = \lceil n/2 \rceil$ gives
+\begin{equation}
+\mathrm{Opt}_{\mathrm{F2}}(n) \le T(\lfloor n/2 \rfloor) + T(\lceil n/2 \rceil) + \binom{n}{\lfloor n/2 \rfloor}.
+\end{equation}
+For each $k \in \{\lfloor n/2 \rfloor, \lceil n/2 \rceil\}$, taking one balanced split $a' = \lfloor k/2 \rfloor$, $b' = \lceil k/2 \rceil$ yields
+\begin{equation}
+T(k) \le T(a') + T(b') + K(n,k).
+\end{equation}
+Since $m = n - 1$, symmetry of binomial coefficients gives $K(n, \lceil n/2 \rceil) \le 2^{n-2} + \binom{n-1}{\lfloor n/2 \rfloor} + \binom{n-1}{\lceil n/2 \rceil} = 2^{n-2} + O(2^n / \sqrt{n})$. Meanwhile, $a', b' \le \lceil n/4 \rceil + 1 \le 0.3(n - 1)$ for all sufficiently large $n$, so standard binomial tail bounds give $K(n, a'), K(n, b') \le 2^{H_2(0.3)(n-1)} < 2^{0.882 n}$, and hence $T(a'), T(b') \le n \cdot 2^{0.882 n} = o(2^n)$. Combining both subtrees with $\binom{n}{\lfloor n/2 \rfloor} = O(2^n / \sqrt{n})$ yields $\mathrm{Opt}_{\mathrm{F2}}(n) \le 2 \cdot 2^{n-2} + o(2^n) = 2^{n-1} + o(2^n) = O(2^n)$.
+\end{proof}
+
 \section{Matrix-Free $O(n \cdot 2^n)$ Butterflies and Gate Optimization}
 
 Generation 3 initially utilized precomputed rational matrices inverted via SymPy ($O(N^2)$ additions, producing 3,313 gates at $n=7$). Generations 4--9 eliminated every dense matrix via four structural operators:
@@ -199,7 +216,7 @@ $n$ & Glynn Muls & Gen 3--6 Muls & Gen 8 (E) & Gen 9 (F1) & \textbf{Gen 10 (F2)}
 
 \subsection{Physical Hardware Benchmarks in Compiled C++17}
 
-To verify that theoretical gate reductions yield physical runtime acceleration, Generation 6 and 7 emitted straight-line programs compiled with \texttt{g++ -O3 -march=native}. Table~\ref{tab:cpp_bench} benchmarks wall-clock execution over the ring extension $\mathbb{F}_{2^{61}-1}[x]/(x^8 - 2)$.
+To verify that theoretical gate reductions yield physical runtime acceleration, Generation 6 and 7 emitted straight-line programs compiled in the same C++17 binary (\texttt{src/bench\_\-poly8\_\-mod61.cpp}, \texttt{g++ -O3 -march=native}) alongside an equally tuned Glynn + Gray-code baseline (\texttt{glynn\_\-gray\_\-poly8}) using the identical \texttt{Poly8} (\texttt{uint64\_t[8]}) memory layout over $\mathbb{F}_{2^{61}-1}[x]/(x^8 - 2)$. Table~\ref{tab:cpp_bench} reports wall-clock throughput; note that the unrolled SLP trades a larger register/instruction-cache footprint (to hold reused partial products) for fewer ring multiplications, whereas Gray-code Glynn streams sequentially with minimal working state.
 
 \begin{table}[!htbp]
 \centering
