@@ -2,7 +2,7 @@
 
 Exact, branch-free arithmetic Straight-Line Programs (SLPs) for the $n \times n$ matrix permanent $\mathrm{Perm}(A)$ over any field $\mathbb{F}$ with $\mathrm{char}(\mathbb{F}) \neq 2$, achieving strictly fewer non-scalar multiplications and total arithmetic operations than the classical Glynn + Gray code baseline.
 
-**Author:** Barath B  
+**Author:** Barath B ([ORCID: 0009-0008-8195-539X](https://orcid.org/0009-0008-8195-539X))  
 **Preprint:** [`paper/main.pdf`](paper/main.pdf) | [`paper/main.tex`](paper/main.tex)
 
 ---

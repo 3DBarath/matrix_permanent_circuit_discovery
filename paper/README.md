@@ -1,6 +1,6 @@
 # Breaking Glynn's Barrier: Exact $O(2^n)$-Multiplication Circuits for the Matrix Permanent via Degree-Preserving Dual-Ball Annihilation and Möbius–Zeta Butterflies
 
-**Author:** Barath B (Independent Researcher)  
+**Author:** Barath B (Independent Researcher, ORCID: [`0009-0008-8195-539X`](https://orcid.org/0009-0008-8195-539X))  
 **Target Submission:** arXiv (`cs.CC` / `math.CO`) / STOC / FOCS / CCC  
 **Source File:** [`paper/main.tex`](./main.tex)  
 **Compiled PDF:** [`paper/main.pdf`](./main.pdf)
