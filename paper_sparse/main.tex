@@ -310,6 +310,13 @@ We have demonstrated an exact, fully verified permanent solver that achieves exp
 In Generation~16--20, this architecture was extended across five additional frontiers: (1) complex-valued Boson Sampling (\texttt{src/boson\_\-sampling\_\-complex.cpp}) using compensated \texttt{long double} accumulation, achieving machine-precision accuracy and solving $n = 60$ unitary permanents in $192.15$\,ms; (2) exact sub-$2^n$ Sparse Hafnians (\texttt{src/sparse\_\-hafnian.cpp}) with Cascade-Branching and OpenMP for non-bipartite Gaussian Boson Sampling graphs, solving 3-regular $n = 72$ in $5.09$\,ms and scaling to $n = 96$ in $112.64$\,ms (and 4-regular $n = 32$ in $0.551$\,ms); (3) a batched CUDA GPU kernel (\texttt{colab/sparse\_\-permanent\_\-cuda.cu}) with $32$\,KB on-chip shared-memory DP, \texttt{\_\_launch\_\-bounds\_\_(256)}, and atomic-free compression, solving $n = 64$ in $1.37$\,s and $n = 72$ in $19.04$\,s--$19.80$\,s on a Tesla T4; (4) Or-Opt + column-closing + remaining-degree frontier ordering and \texttt{fw} $\le 16$ flat-array DP (\texttt{src/sparse\_\-permanent.cpp}), scaling 3-regular weighted permanents to $n = 80$ ($744.24$\,M ops, $1.62 \times 10^{15}\times$ fewer than $2^{80}$, $21.77$\,s) and 4-regular (\texttt{--4reg}) to $n = 28$ in $94,364$ ops (\texttt{br} $= 0$) and $n = 36$ in $42.48$\,ms ($1.80$\,M ops); and (5) Lean~4 + Mathlib4 formalizations (\texttt{lean/Permanent\-Proofs.lean}), where \texttt{perm\_\-degree2\_\-row\_\-cofactor\_\-collapse}, \texttt{deg1\_\-peeling\_\-row\_\-cofactor}, \texttt{essential\_\-var\_\-eliminates\_\-le\_\-five}, and \texttt{essential\_\-var\_\-m6\_\-forces\_\-w\_\-le\_\-3} all typechecked cleanly in Google Colab with zero \texttt{sorry}s.
 }
 
+\section*{Reproducibility Package}
+All source code, C++17/CUDA kernels, Lean~4 formalizations, and verification suites are publicly accessible and reproducible at: \\
+\url{https://github.com/3DBarath/matrix_permanent_circuit_discovery}.
+
+\section*{AI Assistance Disclosure}
+AI coding and writing assistants were used during algorithm discovery, C++17/CUDA/Lean~4 implementation, and manuscript drafting. All mathematical proofs, bit-exact Glynn/brute-force checks, hardware benchmarks, and Lean~4 + Mathlib4 formalizations were verified deterministically by the author.
+
 \begin{thebibliography}{9}
 \bibitem{valiant1979} L.~G.~Valiant, ``The complexity of computing the permanent,'' \emph{Theoretical Computer Science}, vol.~8, no.~2, pp.~189--201, 1979.
 \bibitem{ryser1963} H.~J.~Ryser, \emph{Combinatorial Mathematics}, Carus Mathematical Monographs, No.~14, Mathematical Association of America, 1963.
