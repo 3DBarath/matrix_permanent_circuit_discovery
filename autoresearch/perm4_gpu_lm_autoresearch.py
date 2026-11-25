@@ -255,6 +255,7 @@ def evaluate_genome_torch_cuda(
     vmap_jac = torch.func.vmap(torch.func.jacrev(_residual_single))
 
     with torch.no_grad():
+        use_cpu_solve = False
         for start in range(0, restarts, chunk_sz):
             th_c = theta_batch[start : start + chunk_sz].clone()
             lam = torch.full((th_c.shape[0],), max(genome.reg_weight, 1e-3), device=device, dtype=torch.float64)
@@ -265,7 +266,14 @@ def evaluate_genome_torch_cuda(
                 JTJ = torch.einsum("cbp,cbq->cpq", J_c, J_c)
                 JTr = torch.einsum("cbp,cb->cp", J_c, r_c)
                 A_sys = JTJ + lam[:, None, None] * eye_P[None]
-                delta = torch.linalg.solve(A_sys, -JTr.unsqueeze(-1)).squeeze(-1)
+                if not use_cpu_solve:
+                    try:
+                        delta = torch.linalg.solve(A_sys, -JTr.unsqueeze(-1)).squeeze(-1)
+                    except RuntimeError:
+                        use_cpu_solve = True
+                        delta = torch.linalg.solve(A_sys.cpu(), -JTr.cpu().unsqueeze(-1)).squeeze(-1).to(device)
+                else:
+                    delta = torch.linalg.solve(A_sys.cpu(), -JTr.cpu().unsqueeze(-1)).squeeze(-1).to(device)
                 th_try = th_c + delta
                 r_try = vmap_res(th_try)
                 loss_try = torch.mean(r_try * r_try, dim=1)
