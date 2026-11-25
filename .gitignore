@@ -1,18 +1,33 @@
+# Python & test artifacts
 __pycache__/
 *.py[cod]
 *$py.class
 .pytest_cache/
-*.zip
-*.tar.gz
+
+# C/C++ build artifacts
+*.o
+*.out
+
+# LaTeX build artifacts
 paper/*.aux
 paper/*.log
 paper/*.out
 paper/*.xdv
 paper/page-*.png
+paper_sparse/*.aux
+paper_sparse/*.log
+paper_sparse/*.out
+paper_sparse/*.xdv
+paper_sparse/page-*.png
 
-# Local archives, HTML reports, and root scratch prototypes
+# Local archives, notes, and scratch files
 *.zip
+*.tar.gz
 *.html
+archive/
+endorsement.md
+arxiv_latex_moderation_checklist.md
+matrix_permanent_sub2n_report.md
 sparse_permanent.py
 sparse_permanent_v2.py
 sparse_permanent.cpp
@@ -21,5 +36,3 @@ sparse_permanent final push.cpp
 Matrix Permanent Gen1 To Gen10.pdf
 matrix_permanent_gen1_to_gen10.tex
 autoresearch_prompts_next_2_moves.md
-archive/
-endorsement.md
