@@ -149,7 +149,7 @@ Generation 10 implements Mechanism F2 via an exact Schur-complement butterfly ar
 
 ## 10. Lower Bounds & Complexity Horizon
 - **Unconditional $L_{\mathrm{mul}}(\mathrm{Perm}_3) = 7$ (General DAGs, $\mathrm{char}(\mathbb{F}) \neq 2$):** Five machine-certified lemmas over $\mathbb{Z}[1/2]$ (Strassen homogenization, isotropic subspace bound, integer SNF of $\nabla\mathrm{Perm}_3$, Jacobian ideal Gröbner cofactors certifying $\dim \mathrm{Sing}(V(\mathrm{Perm}_3)) \le 2$, and 5-plane classification) rule out all 6-mul arithmetic DAGs regardless of feedback depth.
-- **Decision ETH vs. `#ETH`:** Refutations of decision ETH for 3-SAT ($\mathbf{NP}$) do not affect $\mathrm{Perm}$ ($\#\mathbf{P}$-complete; $\mathbf{P}^{\#\mathbf{P}} \supseteq \mathbf{PH}$ by Toda's theorem). Any linear hypercube polarization circuit still requires $\ge 2^{n-1}$ states to annihilate spurious lower-degree monomials.
+- **Hypercube Floor & $\#\mathbf{P}$-Completeness:** Eliminating the polynomial factor $n$ from $\Theta(n \cdot 2^n)$ to $O(2^n)$ leaves the exponential base $2$ intact; any linear hypercube polarization circuit requires $\ge 2^{n-1}$ states to annihilate spurious lower-degree monomials.
 - **Sub-18 at $n = 4$:** Exhaustive LM, bitsliced $\mathbb{F}_3/\mathbb{F}_5$, and Tesla T4 CUDA searches (`6.55B` evals, best loss `6/64`) found no 17-mul circuit, reinforcing 18 as tight.
 
 
@@ -178,3 +178,7 @@ Generation 10 implements Mechanism F2 via an exact Schur-complement butterfly ar
   - **Lean 4 + Mathlib4 (`lean/PermanentProofs.lean`):** `perm_degree2_row_cofactor_collapse`, `deg1_peeling_row_cofactor`, `essential_var_eliminates_le_five`, and `essential_var_m6_forces_w_le_3` all typechecked cleanly in Colab (`zero sorry`).
   - **Perm_4 17-Mul CUDA Search (`colab/perm4_17mul_search.cu` on Tesla T4):** Evaluated **6.55 billion circuits** (`256 x 256 x 100,000`) in `263.99 s` (**24.82 M circuits/sec**), **Best loss: 6 / 64** — no 17-mul circuit found, reinforcing 18 as tight.
   - **4-Regular Sparse (`src/sparse_permanent.cpp --4reg`):** Column-closing + remaining-degree tie-breaking reduced `n=28` from `133,135` to **97,224 ops** (`3.61 ms`, `br=1.0`, $>53\%$ total reduction vs. `210,275`, `GLYNN PASS`).
+- **Gen 20 (`fw <= 16` Flat-Array DP & Extended Scaling):**
+  - **3-Regular Weighted Permanent (`src/sparse_permanent.cpp`, 8 threads):** `n=72` (`36.08M` ops, `1.31e+14x` fewer, `480` br, `1.05 s`), `n=76` (`49.96M` ops, `1.51e+15x` fewer, `766` br, `1.54 s`), and **`n=80`** (`744.24M` ops, **`1.62e+15x` fewer** than $2^{80}$, `13,843` br, `21.77 s`, `PERM-INV PASS`).
+  - **4-Regular Weighted Permanent (`src/sparse_permanent.cpp --4reg`, 8 threads):** `n=28` (`94,363.5` ops, `br=0.0`, `7.22 ms`, `GLYNN PASS`), `n=32` (`290,947.5` ops, `1.48e+04x` fewer, `7.91 ms`, `PERM-INV PASS`), and **`n=36`** (`1,798,475` ops, `3.82e+04x` fewer, `42.48 ms`, `PERM-INV PASS`).
+  - **Sparse Hafnian (`src/sparse_hafnian.cpp`, 8 threads):** 3-regular `n=76` (`14.47 ms`), `n=80` (`19.76 ms`), `n=88` (`74.02 ms`), and **`n=96` (`112.64 ms`, `max_frontier=11`)**; 4-regular `n=28` (`0.714 ms`) and **`n=32` (`0.551 ms`)**.
