@@ -423,7 +423,7 @@ static uint64_t solve_hybrid(std::vector<AdjRow> rows, Stats& st, int depth) {
         int k = (int)comp.size();
         std::vector<int> order;
         int fw = order_min_frontier(comp, order);
-        if (k <= 14 || fw <= 15) {
+        if (k <= 14 || fw <= 16) {
             ans = mul61(ans, frontier_dp_flat(comp, order, st));
             if (ans == 0) return 0;
             continue;
@@ -434,7 +434,7 @@ static uint64_t solve_hybrid(std::vector<AdjRow> rows, Stats& st, int depth) {
             if ((int)d.size() < min_deg) min_deg = (int)d.size();
             for (const auto& kv : d) cdeg[kv.first]++;
         }
-        if ((min_deg == 3 && fw > 15) || fw > 17) {
+        if ((min_deg == 3 && fw > 16) || fw > 18) {
             int r_star = -1; std::pair<int,int> best_k = {1e9, 1e9};
             for (int r = 0; r < k; ++r) {
                 int mc = 1e9;
@@ -602,10 +602,10 @@ int main(int argc, char** argv) {
     }
     std::mt19937_64 rng(2026);
     if (mode_4reg) {
-        std::printf("=== Gen 15 OpenMP + Flat-Array C++17 (threads=%d) on 4-Regular Weighted Graphs ===\n",
+        std::printf("=== Gen 20 OpenMP + Flat-Array C++17 (threads=%d) on 4-Regular Weighted Graphs ===\n",
                     omp_get_max_threads());
-        for (int n : {16, 20, 24, 28}) {
-            int trials = (n <= 24) ? 3 : 2;
+        for (int n : {16, 20, 24, 28, 32, 36}) {
+            int trials = (n <= 24) ? 3 : (n <= 32 ? 2 : 1);
             double tot_ops = 0, tot_ms = 0, tot_br = 0;
             for (int t = 0; t < trials; ++t) {
                 auto M = gen_d_reg(n, 4, rng);
@@ -614,25 +614,29 @@ int main(int argc, char** argv) {
                 uint64_t v1 = solve_parallel(M, st);
                 double ms = std::chrono::duration<double, std::milli>(std::chrono::high_resolution_clock::now() - t0).count();
                 tot_ops += st.ops; tot_ms += ms; tot_br += st.branches;
-                if (t == 0) {
+                if (t == 0 && n <= 28) {
                     uint64_t vg = glynn_perm(M);
                     if (v1 != vg) {
                         std::printf("GLYNN MISMATCH n=%d: got=%llu expected=%llu\n",
                                     n, (unsigned long long)v1, (unsigned long long)vg);
                         return 1;
                     }
+                } else if (t == 0) {
+                    Stats st2;
+                    uint64_t v2 = solve_parallel(permute_mat(M, rng), st2);
+                    if (v1 != v2) { std::printf("PERM INVARIANCE FAILED n=%d\n", n); return 1; }
                 }
             }
             double avg_ops = tot_ops / trials, avg_ms = tot_ms / trials, avg_br = tot_br / trials;
             double ratio = std::pow(2.0, n) / avg_ops;
-            std::printf("  n=%2d | avg_ops=%12.1f | vs 2^n: %15.2e x fewer! | br=%7.1f | %8.2f ms | GLYNN PASS\n",
-                        n, avg_ops, ratio, avg_br, avg_ms);
+            std::printf("  n=%2d | avg_ops=%12.1f | vs 2^n: %15.2e x fewer! | br=%7.1f | %8.2f ms | %s\n",
+                        n, avg_ops, ratio, avg_br, avg_ms, (n <= 28 ? "GLYNN PASS" : "PERM-INV PASS"));
         }
         return 0;
     }
-    std::printf("=== Gen 13 OpenMP + Flat-Array C++17 (threads=%d) on 3-Regular Weighted Graphs ===\n",
+    std::printf("=== Gen 20 OpenMP + Flat-Array C++17 (threads=%d) on 3-Regular Weighted Graphs ===\n",
                 omp_get_max_threads());
-    for (int n : {48, 56, 60, 64, 68, 72}) {
+    for (int n : {48, 56, 60, 64, 68, 72, 76, 80}) {
         int trials = (n <= 56) ? 2 : 1;
         double tot_ops = 0, tot_ms = 0, tot_br = 0;
         for (int t = 0; t < trials; ++t) {

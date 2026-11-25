@@ -616,8 +616,8 @@ int main() {
         }
     }
 
-    std::cout << "\n=== Benchmark on 3-Regular Graphs (n = 24..72, OpenMP threads = " << omp_get_max_threads() << ") ===\n";
-    for (int n : {24, 28, 32, 36, 40, 44, 48, 52, 56, 60, 64, 68, 72}) {
+    std::cout << "\n=== Benchmark on 3-Regular Graphs (n = 24..96, OpenMP threads = " << omp_get_max_threads() << ") ===\n";
+    for (int n : {24, 32, 40, 48, 56, 60, 64, 68, 72, 76, 80, 88, 96}) {
         double total_ms = 0.0;
         int max_f = 0;
         double last_val = 0.0;
@@ -637,8 +637,8 @@ int main() {
                   << " | sample_haf = " << std::setprecision(0) << last_val << "\n";
     }
 
-    std::cout << "\n=== Verification & Benchmark on 4-Regular Graphs (n = 12..24, OpenMP threads = " << omp_get_max_threads() << ") ===\n";
-    for (int n : {12, 16, 20, 24}) {
+    std::cout << "\n=== Verification & Benchmark on 4-Regular Graphs (n = 12..32, OpenMP threads = " << omp_get_max_threads() << ") ===\n";
+    for (int n : {12, 16, 20, 24, 28, 32}) {
         double total_ms = 0.0;
         int max_f = 0;
         double last_val = 0.0;
