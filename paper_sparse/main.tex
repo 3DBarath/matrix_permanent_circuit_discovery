@@ -11,17 +11,18 @@
 \usepackage{enumitem}
 \usepackage{graphicx}
 
-\definecolor{primary}{RGB}{15, 23, 42}
-\definecolor{accent}{RGB}{2, 132, 199}
-\definecolor{calloutbg}{RGB}{248, 250, 252}
-\definecolor{calloutframe}{RGB}{203, 213, 225}
+\definecolor{primary}{RGB}{24,78,119}
+\definecolor{accent}{RGB}{181,64,47}
 
 \hypersetup{
     colorlinks=true,
-    linkcolor=accent,
-    citecolor=accent,
-    urlcolor=accent
+    linkcolor=primary,
+    citecolor=primary,
+    urlcolor=primary
 }
+
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+\setlength{\parindent}{0pt}
 
 \newtheorem{theorem}{Theorem}[section]
 \newtheorem{lemma}[theorem]{Lemma}
@@ -41,32 +42,26 @@
 \newcommand{\sharpp}{\#\mathbf{P}}
 
 \newcommand{\takeaway}[2]{%
-\vspace{0.8em}%
-\noindent\fcolorbox{calloutframe}{calloutbg}{%
-\parbox{\dimexpr\linewidth-2\fboxsep-2\fboxrule}{%
-\textbf{\color{primary}#1}\vspace{0.3em}\\%
-\small #2%
-}}%
-\vspace{0.8em}%
+  \vspace{6pt}\noindent\colorbox{primary!8}{%
+    \parbox{\dimexpr\linewidth-2\fboxsep\relax}{%
+      \vspace{3pt}\textbf{\color{primary}#1:}\hspace{0.5em}#2\vspace{3pt}%
+    }%
+  }\vspace{6pt}%
 }
 
 \pagestyle{fancy}
 \fancyhf{}
-\fancyhead[L]{\small\textcolor{gray}{Sub-$2^n$ Sparse Matrix Permanent via Graph Reductions and Min-Frontier DP}}
-\fancyhead[R]{\small\textcolor{gray}{Barath B}}
-\fancyfoot[C]{\thepage}
+\lhead{\small\color{gray}Sub-$2^n$ Sparse Matrix Permanent via Graph Reductions and Min-Frontier DP}
+\rhead{\small\color{gray}\thepage}
 \renewcommand{\headrulewidth}{0.4pt}
 
 \title{%
-    \vspace{-1.5em}
-    \LARGE\textbf{Exact Sub-$2^n$ Matrix Permanent Evaluation via Iterated Series Reductions and Min-Frontier Path Decomposition}\\[0.4em]
-    \large\textsf{Paper II: Crashing Through the Hypercube Floor for Bounded-Degree and Sparse Graphs}
+    \textbf{Exact Sub-$2^n$ Matrix Permanent Evaluation via Iterated Series Reductions and Min-Frontier Path Decomposition}\\[0.4em]
+    \large\textsf{Part II: Crashing Through the Hypercube Floor for Bounded-Degree and Sparse Graphs}
 }
 
 \author{
-    \textbf{Barath B}\\
-    \small Independent Research\\
-    \small\texttt{barath@aztrox.in}
+    \textbf{Barath B}\thanks{Independent Researcher. Email: \texttt{barathjack77@gmail.com}.\\Correspondence: \url{https://github.com/3DBarath/matrix_permanent_circuit_discovery}.}
 }
 \date{November 2026}
 
@@ -318,7 +313,7 @@ In Generation~16--20, this architecture was extended across five additional fron
 \bibitem{valiant1979} L.~G.~Valiant, ``The complexity of computing the permanent,'' \emph{Theoretical Computer Science}, vol.~8, no.~2, pp.~189--201, 1979.
 \bibitem{ryser1963} H.~J.~Ryser, \emph{Combinatorial Mathematics}, Carus Mathematical Monographs, No.~14, Mathematical Association of America, 1963.
 \bibitem{glynn2010} D.~G.~Glynn, ``The permanent of a square matrix,'' \emph{European Journal of Combinatorics}, vol.~31, no.~7, pp.~1887--1891, 2010.
-\bibitem{part1_paper} B.~Barath, ``Breaking the $\Theta(n \cdot 2^n)$ multiplication barrier for the matrix permanent: Achieving the exact $O(2^n)$ linear hypercube floor,'' \emph{Preprint}, 2026.
+\bibitem{part1_paper} Barath~B, ``Breaking Glynn's Barrier: Exact $O(2^n)$-Multiplication Circuits for the Matrix Permanent via Degree-Preserving Dual-Ball Annihilation and M\"obius--Zeta Butterflies,'' \emph{Preprint}, 2026.
 \bibitem{aaronson2011} S.~Aaronson and A.~Arkhipov, ``The computational complexity of linear optics,'' in \emph{Proceedings of the 43rd Annual ACM Symposium on Theory of Computing (STOC)}, pp.~333--342, 2011.
 \bibitem{jsv2004} M.~Jerrum, A.~Sinclair, and E.~Vigoda, ``A polynomial-time approximation algorithm for the permanent of a matrix with non-negative entries,'' \emph{Journal of the ACM}, vol.~51, no.~4, pp.~671--697, 2004.
 \end{thebibliography}
