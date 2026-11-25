@@ -156,7 +156,7 @@ By Theorem~\ref{thm:deg_pres} with the roles of $U$ and $V$ swapped, $W = (U - c
 Defining the Walsh--Hadamard transform $\widehat{U}(S) = 2^{-m} \sum_{y \in \{0,1\}^m} U(y) \chi_S(y)$, Parseval's identity at the root gives $\sum_{y} \sigma_y U(y) V(y) = 2^m \sum_{S} \widehat{U}(S)\widehat{V}(\overline{S})$. Because $\widehat{V}(\overline{S}) = 0$ for $|\overline{S}| > n - a$ and $\widehat{U}(S) = 0$ for $|S| > a$, the root sum restricts to $a - 1 \le |S| \le a$, yielding $\binom{n-1}{a-1} + \binom{n-1}{a} = \binom{n}{a}$ multiplications by Pascal's identity. Combining this with Theorems~\ref{thm:deg_pres} and~\ref{thm:mech_f} gives the dynamic-programming recurrence for the dual-ball tree non-scalar multiplication count:
 \begin{align}
   T(1) &= 0, \\
-  T(k) &= \min_{1 \le a \le \lfloor k/2 \rfloor} \Big( T(a) + T(k-a) + K(n,k) - K(n,a-2) - K(n,k-a-2) \Big), \label{eq:dp_f2} \\ \\
+  T(k) &= \min_{1 \le a \le \lfloor k/2 \rfloor} \Big( T(a) + T(k-a) + K(n,k) - K(n,a-2) - K(n,k-a-2) \Big), \label{eq:dp_f2} \\
   \mathrm{Opt}_{\mathrm{F2}}(n) &= \min_{1 \le a \le \lfloor n/2 \rfloor} \Big( T(a) + T(n-a) + \binom{n}{a} \Big).
 \end{align}
 

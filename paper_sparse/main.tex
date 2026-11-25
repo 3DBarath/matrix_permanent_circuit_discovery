@@ -189,14 +189,14 @@ where $\Delta \mathrm{Open}(r)$ is the count of previously unopened columns appe
 
 Standard Ryser DP stores all $2^n$ column subsets. In contrast, our frontier DP restricts bitmasks solely to the currently active frontier indices:
 \begin{equation}
-\mathrm{DP}_t : 2^{fw(t)} \to \F_p.
+\mathrm{DP}_t : 2^{fw(t)} \to \F.
 \end{equation}
 When a column becomes dead at step $t$, all states where that column was not matched are discarded (as they cannot form a full matching), and the dead column's bit is marginalized out, compressing the active table size to $2^{fw(t)}$.
 
 \begin{proposition}[Frontier DP Complexity]
-The number of dynamic programming transitions required to evaluate a reduced matrix with path decomposition ordering $\pi$ is bounded by:
+The number of dynamic programming transitions required to evaluate a reduced matrix with path decomposition ordering $\pi$ satisfies:
 \begin{equation}
-T(n) \le O\left(n \cdot d \cdot 2^{fw(\pi)}\right),
+T(n) = O\left(n \cdot d \cdot 2^{fw(\pi)}\right),
 \end{equation}
 where $d$ is the maximum row degree of the reduced matrix (which can exceed the input graph's degree after degree-2 contractions). When dead columns are projected on-the-fly into $\mathrm{DP}_t$, space remains $O(2^{fw(\pi)})$ (whereas materializing an intermediate table over $F_{t-1} \cup \mathrm{supp}(A_{\pi_t, :})$ before compression can use $2^{fw(\pi)+d}$ space).
 \end{proposition}
@@ -225,12 +225,12 @@ To evaluate the sub-$2^n$ scaling of the solver, we benchmarked random weighted 
 
 \begin{table}[!htbp]
 \centering
-\caption{Empirical complexity and wall-clock execution time of \texttt{sparse\_permanent.py} (Generation 11) vs.\ dense Glynn ($2^n$) across regular bipartite graphs.}
+\caption{Empirical complexity and wall-clock execution time of \texttt{sparse\_permanent.py} (Generation 11) vs.\ dense $2^n$ subset iterations across regular bipartite graphs.}
 \label{tab:sparse_scaling}
 \resizebox{\linewidth}{!}{%
 \begin{tabular}{lrrrrrr}
 \toprule
-Graph Family & $n$ & Avg DP Ops & Dense $2^n$ Ops & Ratio (Speedup) & Max Frontier & Runtime \\
+Graph Family & $n$ & Avg DP Ops & Dense $2^n$ & Ratio (Speedup) & Max Frontier & Runtime \\
 \midrule
 3-regular weighted & 16 & 367    & 65,536      & $178.5\times$    & 9  & 0.36 ms \\
 3-regular weighted & 20 & 742    & 1,048,576   & $1,413.2\times$  & 10 & 0.62 ms \\
@@ -261,11 +261,11 @@ To eliminate Python interpreter overhead and evaluate exact modular arithmetic n
 
 \begin{table}[!htbp]
 \centering
-\caption{Generation 15 Native C++17 + OpenMP (\texttt{src/sparse\_permanent.cpp}) exact 3-regular weighted permanent benchmarks ($n = 48\text{--}72$) modulo $2^{61}-1$.}
+\caption{Generation 15 Native C++17 + OpenMP (\texttt{src/sparse\_permanent.cpp}, 2 threads) exact 3-regular weighted permanent benchmarks ($n = 48\text{--}72$) modulo $2^{61}-1$ (vs.\ dense $2^n$ subset count).}
 \label{tab:cpp_sparse_bench}
 \begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}rrrrrr}
 \toprule
-$n$ & Avg Ops & Dense $2^n$ Ops & Ratio (Speedup) & Branches & Gen 15 Time \\
+$n$ & Avg Ops & Dense $2^n$ & Ratio (Speedup) & Branches & Gen 15 Time (2t) \\
 \midrule
 48 & 228,830     & $2.81 \times 10^{14}$ & $1.23 \times 10^9\times$     & 5.5     & 4.90 ms \\
 56 & 529,837     & $7.21 \times 10^{16}$ & $1.36 \times 10^{11}\times$  & 20.0    & 9.83 ms \\
