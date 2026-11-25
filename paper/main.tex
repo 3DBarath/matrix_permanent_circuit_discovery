@@ -54,8 +54,8 @@
   }\vspace{6pt}%
 }
 
-\title{\textbf{Breaking Glynn's Barrier: \\ Exact $O(2^n)$-Multiplication Circuits for the Matrix Permanent via Degree-Preserving Dual-Ball Annihilation and M\"obius--Zeta Butterflies}\\[0.4em]
-\large\textsf{Part I: Dense Hypercube Floor, M\"obius--Zeta Butterflies, and Unconditional Lower Bounds}}
+\title{\textbf{Compressing Glynn's Formula: \\ Exact $O(2^n)$-Multiplication Circuits for the Matrix Permanent via Degree-Preserving Dual-Ball Annihilation and M\"obius--Zeta Butterflies}\\[0.4em]
+\large\textsf{Part I: Hypercube Polarization, M\"obius--Zeta Butterflies, and Lower-Bound Obstructions}}
 
 \author{
     \textbf{Barath B}\thanks{Independent Researcher. Email: \texttt{barathjack77@gmail.com}.\\Correspondence: \url{https://github.com/3DBarath/matrix_permanent_circuit_discovery}.}
@@ -66,11 +66,11 @@
 \maketitle
 
 \begin{abstract}
-We present an algebraic complexity framework spanning ten generations that strictly breaks the 15-year-old Glynn barrier for the exact $n \times n$ matrix permanent over any field $\mathbb{F}$ with $\mathrm{char}(\mathbb{F}) \neq 2$. We reduce the non-scalar (wire $\times$ wire) multiplication complexity from Glynn's $\Theta(n \cdot 2^n)$ baseline to $O(2^n)$, while bounding total arithmetic gate complexity to $O(n \cdot 2^n)$ and beating Glynn + Gray code on \emph{both} non-scalar multiplications and total arithmetic operations for all $n \ge 10$. 
+We present an algebraic complexity framework spanning ten generations that reduces the non-scalar (wire $\times$ wire) multiplication complexity of the exact $n \times n$ matrix permanent over any field $\mathbb{F}$ with $\mathrm{char}(\mathbb{F}) \neq 2$ from Glynn's $\Theta(n \cdot 2^n)$ baseline to $O(2^n)$, while keeping total arithmetic gate complexity at $\Theta(n \cdot 2^n)$ and improving on Glynn + Gray code in \emph{both} non-scalar multiplications and total arithmetic operations for all $n \ge 10$.
 
-The construction is founded on six exact algebraic mechanisms (Mechanisms A--F2) on the Boolean hypercube $\{+1,-1\}^{n-1} \cong \{0,1\}^{n-1}$: Prefix Degree Interpolation, Suffix Degree-Parity Annihilation, Parseval Collapse, Double-Sided Dual-Ball Annihilation, Degree Preservation Under Annihilation, and Simultaneous Upper-Degree + Dual-Ball Schur-Complement Compression. Replacing precomputed dense rational interpolation matrices with matrix-free M\"obius--Zeta butterflies, Hasse-diagram 1-add-per-mask row evaluators, signed-wire tracking (reducing scalar multiplications to exactly $1$ across the entire circuit), and SSA Common Subexpression Elimination (CSE) yields 4,011 non-scalar multiplications ($-82.2\%$) and 42,945 total gates ($-13.1\%$ vs.\ Glynn + Gray's 49,404) at $n = 12$ in Generation 9. In Generation 10, it reaches the exact information-theoretic hypercube floor of 3,941 multiplications ($-82.5\%$) at $n = 12$ and 52,488 ($-89.3\%$, $1.602 \cdot 2^{15}$) at $n = 16$. 
+The construction is founded on six exact algebraic mechanisms (Mechanisms A--F2) on the Boolean hypercube $\{+1,-1\}^{n-1} \cong \{0,1\}^{n-1}$: Prefix Degree Interpolation, Suffix Degree-Parity Annihilation, Parseval Collapse, Double-Sided Dual-Ball Annihilation, Degree Preservation Under Annihilation, and Simultaneous Upper-Degree + Dual-Ball Schur-Complement Compression. Replacing precomputed dense rational interpolation matrices with matrix-free M\"obius--Zeta butterflies, Hasse-diagram 1-add-per-mask row evaluators, signed-wire tracking (reducing scalar multiplications to exactly $1$ across the entire Gen~4--9 circuit), and SSA Common Subexpression and Dead-Code Elimination (CSE+DCE) yields 4,011 non-scalar multiplications ($-82.2\%$) and 42,945 total gates ($-13.1\%$ vs.\ Glynn + Gray's 49,404) at $n = 12$ in Generation 9. In Generation 10 (which incurs $O(r^2)$ scalar operations for $a \ge 3$ when solving the $r \times r$ Schur-complement system), it reaches the DP-optimal dual-ball count $\mathrm{Opt}_{\mathrm{F2}}(n)$ of 3,941 non-scalar multiplications ($-82.5\%$) at $n = 12$ and 52,488 ($-89.3\%$, $1.602 \cdot 2^{15}$) at $n = 16$.
 
-All circuits are verified symbolically with zero residual in $\mathbb{Q}[A]$ for $n \le 5$ and certified via dual 61-bit Mersenne prime Schwartz--Zippel testing through $n = 12$. In physical execution, compiled C++17 kernels over the polynomial ring extension $\mathbb{F}_{2^{61}-1}[x]/(x^8 - 2)$ demonstrate up to $2.86\times$ wall-clock throughput speedups over optimized Glynn + Gray code. We also prove an algebraic rank obstruction demonstrating that row-layered circuits cannot beat 18 multiplications at $n = 4$, provide an exact $O(n^r)$ polynomial-time solver for rank-$r$ matrices, and formalize why the exponential base $2^n$ (and hence $\#\mathbf{P}$-completeness) remains intact.
+Circuits are verified symbolically with zero residual in $\mathbb{Q}[A]$ for $n \le 5$ and certified via dual 61-bit Mersenne prime Schwartz--Zippel testing for $n \le 12$ (with $n = 14, 16$ counts computed from the DP/butterfly formulas). In physical execution, compiled Gen~7 C++17 kernels over the polynomial ring extension $\mathbb{F}_{2^{61}-1}[x]/(x^8 - 2)$ demonstrate up to $2.86\times$ wall-clock throughput speedups over optimized Glynn + Gray code. We also prove an algebraic rank obstruction for row-layered circuits at $n = 4$, an unconditional general-DAG lower bound $L_{\mathrm{mul}}(\Perm_3) = 7$, an exact $O(n^r)$ polynomial-time solver for rank-$r$ matrices, and explain why the exponential base $2^n$ (and hence $\#\mathbf{P}$-completeness) remains intact.
 \end{abstract}
 
 \begin{quote}
@@ -88,22 +88,22 @@ While the matrix determinant can be computed in $O(n^3)$ or $O(n^\omega)$ time u
 
 For practical and theoretical evaluation over general fields, two classical inclusion-exclusion formulas have anchored the literature:
 \begin{enumerate}
-    \item \textbf{Ryser's Formula (1963):} Computes $\Perm_n(A)$ using $O(n \cdot 2^n)$ additions and $(n-1)(2^n - 1)$ non-scalar multiplications~\cite{ryser1963} (halved to $(n-1) \cdot 2^{n-1}$ via Gray-code subset fixing).
-    \item \textbf{Glynn's Formula (2010):} Expresses $\Perm_n(A)$ as a parity-weighted expectation over $N = 2^{n-1}$ sign vectors $v_y = (1, s_{y,1}, \dots, s_{y,n-1}) \in \{+1\} \times \{\pm 1\}^{n-1}$ indexed by $y \in \{0,1\}^m$ (where $m = n - 1$, $s_{y,c} = (-1)^{y_c}$, and parity $\sigma_y = (-1)^{\wt{y}}$)~\cite{glynn2010}:
+    \item \textbf{Ryser's Formula (1963):} Evaluates $\Perm_n(A)$ using $(n-1)(2^n - 1)$ non-scalar multiplications and $O(n \cdot 2^n)$ additions~\cite{ryser1963}, with additions reduced to $O(n \cdot 2^n)$ (one vector update per step) via Gray-code subset ordering~\cite{nijenhuis1978}.
+    \item \textbf{Glynn's Formula (2010):} Halves the summation from $2^n$ to $N = 2^{n-1}$ terms via $\mathbb{Z}_2$ sign-flip symmetry $v \mapsto -v$, expressing $\Perm_n(A)$ as a parity-weighted expectation over $v_y = (1, s_{y,1}, \dots, s_{y,n-1}) \in \{+1\} \times \{\pm 1\}^{n-1}$ indexed by $y \in \{0,1\}^m$ (where $m = n - 1$, $s_{y,c} = (-1)^{y_c}$, and parity $\sigma_y = (-1)^{\wt{y}}$)~\cite{glynn2010}:
     \begin{equation}
     \label{eq:glynn}
     \Perm_n(A) = \frac{1}{2^{n-1}} \sum_{y \in \{0,1\}^m} (-1)^{\wt{y}} \prod_{r=0}^{n-1} (v_y \cdot A_r).
     \end{equation}
 \end{enumerate}
-Evaluated term-by-term with Gray code row updates, Glynn's algorithm requires $(n-1) \cdot 2^{n-1} = \Theta(n \cdot 2^n)$ non-scalar multiplications and approximately $(n+1) \cdot 2^{n-1}$ additions/subtractions, representing the state of the art for 15 years.
+Evaluated term-by-term with Gray code row updates, Glynn's algorithm requires $(n-1) \cdot 2^{n-1} = \Theta(n \cdot 2^n)$ non-scalar multiplications and approximately $(n+1) \cdot 2^{n-1}$ additions/subtractions, representing the standard general-field baseline since 2010.
 
 \subsection{Overview of Results}
-In this work, we demonstrate that the $\Theta(n \cdot 2^n)$ non-scalar multiplication barrier is not an intrinsic lower bound for algebraic circuits. Over ten generations of architectural refinement, we achieve:
+In this work, we demonstrate that the $\Theta(n \cdot 2^n)$ non-scalar multiplication count of term-by-term Glynn evaluation is not an intrinsic lower bound for algebraic circuits, even though total arithmetic gate complexity remains $\Theta(n \cdot 2^n)$. Over ten generations of architectural refinement, we achieve:
 \begin{itemize}[leftmargin=*]
     \item \textbf{Asymptotic $O(2^n)$ Multiplicative Complexity:} We prove that prefix degree bounds and suffix parity orthogonality enable recursive binary evaluation trees (`\texttt{OptTree}') that compress non-scalar multiplications to $O(2^n)$.
-    \item \textbf{Simultaneous Multiplicative and Total Gate Supremacy:} Using matrix-free M\"obius--Zeta butterflies and Hasse-diagram row evaluators, our circuits beat Glynn + Gray code on \textbf{both} non-scalar multiplications and total arithmetic operations for all $n \ge 10$ (at $n = 12$, $-13.1\%$ total gates and $-82.2\%$ multiplications in Generation~9, and $-82.5\%$ multiplications in Generation~10).
-    \item \textbf{Theoretical Hypercube Floor (Generation 10):} Mechanism F2 (Schur-Complement Butterflies) hits the exact minimum non-scalar multiplication floor of linear degree-parity compression on the Boolean hypercube.
-    \item \textbf{Hardware Acceleration:} Compiled C++17 kernels over polynomial rings achieve up to $2.86\times$ wall-clock speedup over optimized Glynn + Gray code.
+    \item \textbf{Simultaneous Multiplicative and Total Gate Reductions:} Using matrix-free M\"obius--Zeta butterflies and Hasse-diagram row evaluators, our circuits beat Glynn + Gray code on \textbf{both} non-scalar multiplications and total arithmetic operations for all $n \ge 10$ (at $n = 12$, $-13.1\%$ total gates and $-82.2\%$ multiplications in Generation~9, and $-82.5\%$ multiplications in Generation~10).
+    \item \textbf{Dual-Ball DP Optimum (Generation 10):} Mechanism F2 (Schur-Complement Butterflies) achieves the minimum non-scalar multiplication count $\mathrm{Opt}_{\mathrm{F2}}(n)$ within our recursive binary-tree dual-ball compression family.
+    \item \textbf{Hardware Acceleration:} Compiled Gen~7 C++17 kernels over polynomial rings achieve up to $2.86\times$ wall-clock speedup over optimized Glynn + Gray code.
 \end{itemize}
 
 \section{The Algebraic Compression Framework (Generations 1--10)}
@@ -142,14 +142,18 @@ Since every degree-$\le (n - 2)$ polynomial lies in $\mathrm{span}\{\chi_S : \wt
 
 \begin{theorem}[Simultaneous Upper-Degree + Dual-Ball Compression]
 \label{thm:mech_f}
-Under the hypotheses of Theorem~\ref{thm:deg_pres} with $k = a + b < m$ and $a \le b$, swap the ball assignments by symmetry so that $V$ (larger degree $b$) is annihilated on the low-weight ball $Z_b = \{y : \wt{y} \le b - 2\} \subset P_k = \{y : \wt{y} \le k\}$ and $U$ is annihilated on the high-weight ball $Z_a = \{y : \wt{y} \ge m - (a - 2)\}$. Then $W = (U - c_1)(V - c_2)$ lies in the $K(n, k)$-dimensional space of degree-$\le k$ polynomials and vanishes on $Z_a \cup Z_b$ (size $K(n, a-2) + K(n, b-2)$).
+Under the hypotheses of Theorem~\ref{thm:deg_pres} with $k = a + b \le m$ and $a \le b$, swap the ball assignments by symmetry so that $V$ (larger degree $b$) is annihilated on the low-weight ball $Z_b = \{y : \wt{y} \le b - 2\} \subset P_k = \{y : \wt{y} \le k\}$ (with $P_m = \{0,1\}^m$ when $k = m$) and $U$ is annihilated on the high-weight ball $Z_a = \{y : \wt{y} \ge m - (a - 2)\}$. Then $W = (U - c_1)(V - c_2)$ lies in the $K(n, k)$-dimensional space of degree-$\le k$ polynomials and vanishes on $Z_a \cup Z_b$ (of total size $K(n, a-2) + K(n, b-2)$).
 \begin{itemize}
   \item \textbf{Mechanism F1 (Pure M\"obius--Zeta Butterfly, Gen 9):} Placing $Z_b \subset P_k$ inside the canonical pivot basis $P_k$ determines $W$ from $K(n, k) - K(n, b - 2)$ non-scalar multiplications with zero matrix inversion.
-  \item \textbf{Mechanism F2 (Schur-Complement Butterfly, Gen 10):} Dropping $r = K(n, a-2)$ pivot masks $D \subset P_k \setminus Z_b$ (chosen as weight-$k$ masks whenever the resulting $r \times r$ incidence matrix $M$ is nonsingular over $\mathbb{F}$, or general masks in $P_k \setminus Z_b$ otherwise) determines $W$ from $K(n, k) - K(n, a-2) - K(n, b-2)$ non-scalar multiplications. Because each weight-$k$ mask $y_t$ is maximal in $P_k$, its Lagrange basis polynomial is $e_{y_t}(z) = \mathbf{1}[y_t \subseteq z]$, so the $r$ missing values $\lambda$ satisfy $M \lambda = -W^{(0)}|_{Z_a}$ (for $a = 2$, $r = 1$ and $M = [[1]]$ unconditionally, requiring zero scalar multiplications).
+  \item \textbf{Mechanism F2 (Schur-Complement Butterfly, Gen 10):} Dropping $r = K(n, a-2)$ pivot masks $D \subset P_k \setminus Z_b$ determines $W$ from $K(n, k) - K(n, a-2) - K(n, b-2)$ non-scalar multiplications whenever the resulting $r \times r$ incidence matrix $M$ is nonsingular over $\mathbb{F}$. Letting $W^{(0)}$ denote the degree-$\le k$ interpolant matching $W$ on $P_k \setminus D$ and $0$ on $D$, the missing values $\lambda = W|_D$ satisfy $M \lambda = -W^{(0)}|_{Z_a}$. When each $y_t \in D$ has weight $k$, its Lagrange basis polynomial in $P_k$ is $e_{y_t}(z) = \mathbf{1}[y_t \subseteq z]$, and $M$ incurs $O(r^2)$ scalar operations for $a \ge 3$ (for $a = 2$, $r = 1$ and $M = [[1]]$ unconditionally, requiring zero scalar multiplications). Nonsingularity of $M$ holds unconditionally for $a = 2$ and is verified over the 61-bit primes $p_1, p_2$ for all tested $n \le 12$ (for $a \ge 3$ in small odd characteristic $3 \le p \le m$, general pivot masks in $P_k \setminus Z_b$ may be required).
 \end{itemize}
 \end{theorem}
 
-Combining Theorems~\ref{thm:deg_pres} and~\ref{thm:mech_f} with Parseval boundary collapse at the root (where $\widehat{V}(\overline{S}) = 0$ for $|\overline{S}| > n - a$ and $\widehat{U}(S) = 0$ for $|S| > a$ restrict the sum to $a - 1 \le |S| \le a$, yielding $\binom{n-1}{a-1} + \binom{n-1}{a} = \binom{n}{a}$ multiplications by Pascal's identity) yields the exact dynamic-programming recurrence for the hypercube non-scalar multiplication floor:
+\begin{proof}
+By Theorem~\ref{thm:deg_pres} with the roles of $U$ and $V$ swapped, $W = (U - c_1)(V - c_2)$ satisfies $\deg(W) \le k = a + b$ and vanishes on $Z_a \cup Z_b$, where $Z_a \cap Z_b = \emptyset$ since $a + b \le m < n + 3$ and $Z_b \subseteq P_k$ since $b - 2 < k$. Because $P_k$ is unisolvent for degree-$\le k$ multilinear polynomials on $\{0,1\}^m$, $W$ is uniquely determined by its $K(n, k)$ values on $P_k$. In Mechanism F1, $W|_{Z_b} = 0$ leaves $K(n, k) - K(n, b-2)$ evaluations on $P_k \setminus Z_b$, which are computed by $K(n, k) - K(n, b-2)$ non-scalar multiplications and interpolated via M\"obius--Zeta. In Mechanism F2, omitting $r = K(n, a-2)$ pivots $D \subset P_k \setminus Z_b$ leaves $K(n, k) - K(n, a-2) - K(n, b-2)$ non-scalar multiplications. By linearity of Lagrange interpolation on $P_k$, $W = W^{(0)} + \sum_{y_t \in D} \lambda_t e_{y_t}$, where $e_{y_t}$ is the Lagrange basis polynomial of $y_t \in P_k$; when $|y_t| = k$ (maximal in $P_k$), $e_{y_t}(z) = \mathbf{1}[y_t \subseteq z]$. Evaluating $W|_{Z_a} = 0$ yields $M \lambda = -W^{(0)}|_{Z_a}$ with $M_{z, y_t} = e_{y_t}(z)$, which uniquely determines $\lambda$ whenever $\det(M) \neq 0$ in $\mathbb{F}$.
+\end{proof}
+
+Defining the Walsh--Hadamard transform $\widehat{U}(S) = 2^{-m} \sum_{y \in \{0,1\}^m} U(y) \chi_S(y)$, Parseval's identity at the root gives $\sum_{y} \sigma_y U(y) V(y) = 2^m \sum_{S} \widehat{U}(S)\widehat{V}(\overline{S})$. Because $\widehat{V}(\overline{S}) = 0$ for $|\overline{S}| > n - a$ and $\widehat{U}(S) = 0$ for $|S| > a$, the root sum restricts to $a - 1 \le |S| \le a$, yielding $\binom{n-1}{a-1} + \binom{n-1}{a} = \binom{n}{a}$ multiplications by Pascal's identity. Combining this with Theorems~\ref{thm:deg_pres} and~\ref{thm:mech_f} gives the dynamic-programming recurrence for the dual-ball tree non-scalar multiplication count:
 \begin{align}
   T(1) &= 0, \\
   T(k) &= \min_{1 \le a \le \lfloor k/2 \rfloor} \Big( T(a) + T(k-a) + K(n,k) - K(n,a-2) - K(n,k-a-2) \Big), \\
@@ -177,20 +181,20 @@ Since $m = n - 1$, symmetry of binomial coefficients gives $K(n, \lceil n/2 \rce
 
 Generation 3 initially utilized precomputed rational matrices inverted via SymPy ($O(N^2)$ additions, producing 3,313 gates at $n=7$). Generations 4--9 eliminated every dense matrix via four structural operators:
 \begin{enumerate}
-  \item \textbf{M\"obius--Zeta Butterfly Interpolation:} On $\{0,1\}^m$, Inverse M\"obius restricted to canonical pivots $P_d = \{y : \wt{y} \le d\}$ followed by reachability-pruned Forward Zeta recovers all $N$ evaluations using strictly $O(m \cdot 2^m)$ additions/subtractions and zero scalar multiplications.
+  \item \textbf{M\"obius--Zeta Butterfly Interpolation:} On $\{0,1\}^m$, Inverse M\"obius restricted to canonical pivots $P_d = \{y : \wt{y} \le d\}$ followed by reachability-pruned Forward Zeta~\cite{bhkk2007} recovers all $N$ evaluations using strictly $O(m \cdot 2^m)$ additions/subtractions and zero scalar multiplications.
   \item \textbf{Fused Interpolation--Annihilation:} Dropping M\"obius coefficients $c_S$ for $\wt{S} \le d_{\mathrm{ann}}$ between the Inverse M\"obius and Forward Zeta passes eliminates the separate annihilation transform entirely (0 extra gates).
   \item \textbf{Hasse-Diagram 1-Add-Per-Mask Row Evaluator (Gen 5):} Precomputing $2 A_{r,c} = A_{r,c} + A_{r,c}$ and stepping along $\mathrm{mask} \oplus \mathrm{lsb}$ evaluates any active prefix or suffix Hamming-weight ball of size $K$ in $2(n-1) + (K - 1)$ additions/subtractions, cutting row-evaluation additions by up to 70\%.
-  \item \textbf{Signed-Wire Tracking \& SSA CSE+DCE (Gen 4--6):} Carrying $(\text{wire}, \pm 1)$ makes negation free (reducing scalar multiplications to exactly $1$ across the entire Gen 4--9 circuit), and SSA common-subexpression + dead-code elimination removes up to 2,228 redundant gates at $n = 12$.
+  \item \textbf{Signed-Wire Tracking \& SSA CSE+DCE (Gen 4--6):} Carrying $(\text{wire}, \pm 1)$ makes negation free (reducing scalar multiplications to exactly $1$ across the entire Gen~4--9 circuit; Gen~10 additionally uses $O(r^2)$ scalar operations for $a \ge 3$), and SSA common-subexpression + dead-code elimination removes 1,958 dead-code gates at $n = 12$ (from 44,903 raw operations down to 42,945 live gates).
 \end{enumerate}
 
 \section{Empirical Benchmarks and Scaling Records}
 
-All circuits across Generations 1--10 were verified symbolically in $\mathbb{Q}[A]$ (residual $= 0$ for $n \le 5$) and certified over two distinct 61-bit primes ($p_1 = 2^{61}-1$, $p_2 = 2^{61}-31$) using strict wire-level operation accounting via \texttt{TrackedFieldElement}.
+Circuits across Generations 1--10 were verified symbolically in $\mathbb{Q}[A]$ (residual $= 0$ for $n \le 5$) and certified over two distinct 61-bit primes ($p_1 = 2^{61}-1$, $p_2 = 2^{61}-31$) for $n \le 12$ using strict wire-level operation accounting via \texttt{TrackedFieldElement}; the $n = 14, 16$ entries in Table~\ref{tab:main_scaling} are computed from the DP recurrence and butterfly gate counts.
 
 \begin{table}[!htbp]
 \centering
 \small
-\caption{Exact non-scalar multiplications and CSE+DCE total arithmetic gates across Generations 3--10 vs.\ Glynn + Gray code baseline.}
+\caption{Exact non-scalar multiplications across Generations 3--10, and total arithmetic gates and depth for Gen~9 (F1) vs.\ Glynn + Gray code baseline (note: Gen~10 incurs $O(r^2)$ additional scalar operations for $a \ge 3$).}
 \label{tab:main_scaling}
 \resizebox{\linewidth}{!}{%
 \begin{tabular}{rrrrrrrrr}
@@ -216,7 +220,7 @@ $n$ & Glynn Muls & Gen 3--6 Muls & Gen 8 (E) & Gen 9 (F1) & \textbf{Gen 10 (F2)}
 
 \subsection{Physical Hardware Benchmarks in Compiled C++17}
 
-To verify that theoretical gate reductions yield physical runtime acceleration, Generation 6 and 7 emitted straight-line programs compiled in the same C++17 binary (\texttt{src/bench\_\-poly8\_\-mod61.cpp}, \texttt{g++ -O3 -march=native}) alongside an equally tuned Glynn + Gray-code baseline (\texttt{glynn\_\-gray\_\-poly8}) using the identical \texttt{Poly8} (\texttt{uint64\_t[8]}) memory layout over $\mathbb{F}_{2^{61}-1}[x]/(x^8 - 2)$. Table~\ref{tab:cpp_bench} reports wall-clock throughput; note that the unrolled SLP trades a larger register/instruction-cache footprint (to hold reused partial products) for fewer ring multiplications, whereas Gray-code Glynn streams sequentially with minimal working state.
+To verify that theoretical gate reductions yield physical runtime acceleration, Generation~7 emitted unrolled straight-line programs compiled in the same C++17 binary (\texttt{src/bench\_\-poly8\_\-mod61.cpp}, \texttt{g++ -O3 -march=native -std=c++17}) alongside an equally tuned Glynn + Gray-code baseline (\texttt{glynn\_\-gray\_\-poly8}) using the identical \texttt{Poly8} (\texttt{uint64\_t[8]}) memory layout over $\mathbb{F}_{2^{61}-1}[x]/(x^8 - 2)$. Table~\ref{tab:cpp_bench} reports representative single-host wall-clock throughput (absolute timings and speedups depend on CPU cache and microarchitecture); note that the unrolled Gen~7 SLP trades a larger register/instruction-cache footprint (to hold reused partial products) for fewer ring multiplications, whereas Gray-code Glynn streams sequentially with minimal working state.
 
 \begin{table}[!htbp]
 \centering
@@ -241,6 +245,7 @@ $n$ & Glynn + Gray ($\mu$s) & Gen 7 SLP ($\mu$s) & Wall-Clock Speedup & Verifica
 \subsection{Row-Layered Rank Lower Bound at $n = 4$}
 
 \begin{proposition}[Row-Layered Rank Lower Bound at $n = 4$]
+\label{prop:row_layered}
 The $4 \times 4 \times 6$ bilinear tensor $T_1$ of all six $2 \times 2$ permanents $P_{ij} = A_{0i} A_{1j} + A_{0j} A_{1i}$ satisfies $\rank_{\mathbb{F}}(T_1) \ge 7$ over every field $\mathbb{F}$ with $\mathrm{char}(\mathbb{F}) \neq 2$.
 \end{proposition}
 
@@ -248,16 +253,16 @@ The $4 \times 4 \times 6$ bilinear tensor $T_1$ of all six $2 \times 2$ permanen
 Each slice of $T_1$ lies in the 6-dimensional vector space $\mathrm{Sym}^2_{\text{off-diag}}(\mathbb{F}^4)$ of symmetric zero-diagonal $4 \times 4$ matrices. If $\rank(T_1) = 6$, then six rank-1 matrices would have to lie strictly inside $\mathrm{Sym}^2_{\text{off-diag}}(\mathbb{F}^4)$ and span it. However, any symmetric rank-1 matrix $\lambda u u^T$ with zero diagonal satisfies $\lambda u_i^2 = 0$ for all $i \in \{1,\dots,4\}$, which forces $\lambda u u^T = 0$. Hence $\rank(T_1) \ge 7$.
 \end{proof}
 
-Algebraically, exact Gr\"obner basis computation over $\mathbb{Q}[c_0,c_1,c_2,c_3]$ shows that the $3 \times 3$ minors of $\sum_{t=0}^3 c_t M_t$ generate the ideal $(c_0,c_1,c_2,c_3)^3$, so every nonzero linear combination of the $4$ slices of the $6 \times 4 \times 4$ lift tensor $T_2$ has rank $\ge 3$ (giving $\rank_{\mathbb{F}}(T_2) \ge 6$ unconditionally). Continuous Trust-Region Reflective (ALS) probes further indicate that $T_1$ and $T_2$ each have CP rank $7$ over both $\mathbb{R}$ and $\mathbb{C}$ (residual wall $1.255$ at $R = 6$), pointing to $7 + 7 + 4 = 18$ multiplications for strictly row-layered circuits. Lifting these factors over $\mathbb{Q}$ yielded Generation~1 ($20$ multiplications, $98$ gates, depth $10$) and Generation~2, where the composed $7 \times 7$ transition collapses to the rank-1 update $8L = \mathrm{diag}(+1,-1,-1,+1,-1,+1,+1)(I_7 - \mathbf{1}\sigma^T)$, achieving $18$ non-scalar multiplications and $84$ total gates (depth $15$).
+Algebraically, let $T_2$ denote the $6 \times 4 \times 4$ lift tensor whose slices $M_0, M_1, M_2, M_3$ map the $4$ linear forms of the remaining two rows into the $6$ pairwise $2 \times 2$ permanent sub-results. Exact Gr\"obner basis computation over $\mathbb{Q}[c_0,c_1,c_2,c_3]$ shows that the $3 \times 3$ minors of $\sum_{t=0}^3 c_t M_t$ generate the ideal $(c_0,c_1,c_2,c_3)^3$, so every nonzero linear combination of the $4$ slices of $T_2$ has rank $\ge 3$ (giving $\rank_{\mathbb{F}}(T_2) \ge 6$ unconditionally). Heuristic Trust-Region Reflective (ALS) numerical optimization (which stalls at residual $1.255$ at $R = 6$) suggests that $T_1$ and $T_2$ each have CP rank $7$ over $\mathbb{R}$ and $\mathbb{C}$, pointing to $7 + 7 + 4 = 18$ multiplications for strictly row-layered circuits. Lifting these factors over $\mathbb{Q}$ yielded Generation~1 ($20$ multiplications, $98$ gates, depth $10$) and Generation~2, where the composed $7 \times 7$ transition collapses to the rank-1 update $8L = \mathrm{diag}(+1,-1,-1,+1,-1,+1,+1)(I_7 - \mathbf{1}\sigma^T)$, achieving $18$ non-scalar multiplications and $84$ total gates (depth $15$).
 
 \subsection{Depth-3 $\Sigma\Pi\Sigma$ Product Rank of $\Perm_3$ (Generation 15)}
 
-Using the algebraic substitution method, we close general mixed-row Depth-3 $\Sigma\Pi\Sigma$ product rank $R = 3$ for $\Perm_3(A)$ over any field $\mathbb{F}$ with $\mathrm{char}(\mathbb{F}) \neq 2$:
+Using the algebraic substitution method~\cite{bcs1997,landsberg2012}, we close general mixed-row Depth-3 $\Sigma\Pi\Sigma$ product rank $R = 3$ for $\Perm_3(A)$ over any field $\mathbb{F}$ with $\mathrm{char}(\mathbb{F}) \neq 2$:
 \begin{proposition}[Depth-3 $\Sigma\Pi\Sigma$ Product Rank of $\Perm_3$]
 Over any field $\mathbb{F}$ ($\mathrm{char}(\mathbb{F}) \neq 2$), any representation $\Perm_3(A) = \sum_{r=1}^R L_{r,1}(A) L_{r,2}(A) L_{r,3}(A)$ with arbitrary mixed-row linear forms $L_{r,k}$ requires $R \ge 4$.
 \end{proposition}
 \begin{proof}
-Suppose $R = 3$. Setting $L_{1,1} = L_{2,1} = L_{3,1} = 0$ forces $\Perm_3(A)$ to vanish identically on a linear subspace $H \subset \mathbb{F}^{3 \times 3}$ of dimension $\ge 9 - 3 = 6$. Every 6-dimensional zero-permanent subspace of $\mathbb{F}^{3 \times 3}$ is necessarily a zero row or zero column (a $2 \times 2$ zero block has dimension only $9 - 4 = 5$). Taking without loss of generality $L_{1,1}, L_{2,1}, L_{3,1}$ to span row $0$ forces the coefficient of $A_{00}$ on $\{A_{01} = A_{02} = 0\}$---namely the irreducible $2 \times 2$ permanent $A_{11} A_{22} + A_{12} A_{21}$---to factor as a single product $L_{1,2} L_{1,3}$, a contradiction. Thus Depth-3 $\Sigma\Pi\Sigma$ product rank of $\Perm_3$ is strictly $4$ even with arbitrary mixed-row linear forms.
+Suppose $R = 3$. Setting $L_{1,1} = L_{2,1} = L_{3,1} = 0$ forces $\Perm_3(A)$ to vanish identically on a linear subspace $H \subset \mathbb{F}^{3 \times 3}$ of dimension $\ge 9 - 3 = 6$. Every 6-dimensional zero-permanent subspace of $\mathbb{F}^{3 \times 3}$ is necessarily a zero row or zero column (a $2 \times 2$ zero block has dimension only $9 - 4 = 5$). By row/column symmetry, assume $H = \{A_{00} = A_{01} = A_{02} = 0\}$, so $\mathrm{span}(L_{1,1}, L_{2,1}, L_{3,1}) = \mathrm{span}(A_{00}, A_{01}, A_{02})$. Pick a nonzero vector $u = (u_0, u_1, u_2) \in \ker(L_{2,1}|_{\text{row }0}) \cap \ker(L_{3,1}|_{\text{row }0})$ in row~$0$ (so $L_{1,1}(u) \neq 0$). Setting row~$0$ to $t u$ annihilates $L_{2,1}$ and $L_{3,1}$, collapsing $\Perm_3$ to $t \sum_{j=0}^2 u_j C_j = t L_{1,1}(u) L_{1,2}|_{t=0} L_{1,3}|_{t=0}$, where $C_0, C_1, C_2$ are the $2 \times 2$ permanents of rows~$1,2$. Thus $\sum_{j=0}^2 u_j C_j$ would have bilinear rank $\le 1$ in rows~$1,2$. However, its coefficient matrix $\begin{psmallmatrix} 0 & u_2 & u_1 \\ u_2 & 0 & u_0 \\ u_1 & u_0 & 0 \end{psmallmatrix}$ has rank $\ge 2$ for every nonzero $u$ over $\mathrm{char}(\mathbb{F}) \neq 2$, a contradiction. Thus Depth-3 $\Sigma\Pi\Sigma$ product rank of $\Perm_3$ is strictly $4$.
 \end{proof}
 
 \subsection{Unconditional Lower Bound $L_{\mathrm{mul}}(\Perm_3) = 7$ for General DAGs}
@@ -267,32 +272,32 @@ Extending beyond Depth-3 $\Sigma\Pi\Sigma$ circuits, five machine-certified lemm
     \item \textbf{Zero-Constant Reduction \& Strassen Homogenization:} Eliminating affine constants reduces any $M$-mul DAG to $Y^{(2)} = \sum_{m \in W} w_m L_m R_m = 0$ and $Y^{(3)} = \sum_{j=1}^{M-1} L_j R_j M_j = \Perm_3$ with $M_j \in V_W = \mathrm{span}(L_m, R_m : m \in W)$.
     \item \textbf{Isotropic Subspace Bound:} Over $\mathrm{char}(\mathbb{F}) \neq 2$, $Y^{(2)} = 0$ forces $\mathrm{rowspace}(M)$ to be totally isotropic, bounding $\dim V_W \le |W|$.
     \item \textbf{Essential-Variable Inequality:} Exact integer SNF of $\nabla \Perm_3$ (rank $9$, invariant factor $[1]$) yields $9 \le 2M - |W|$, eliminating all $M \le 5$ and $M = 6$ with $|W| \ge 4$.
-    \item \textbf{Singular Locus Obstruction:} Explicit $\mathbb{Z}[1/2]$ cofactors for all 24 grevlex Gr\"obner basis elements of the Jacobian ideal certify $\dim \mathrm{Sing}(V(\Perm_3)) \le 2 < 4$, eliminating $|W| \le 2$.
-    \item \textbf{5-Plane Classification:} Exact $\mathbb{Z}[1/2]$ identities show the only 3-spaces $V$ with $\Perm_3 \in \langle V \rangle$ are the 6 row/column spaces, collapsing $Y^{(3)}$ to Chow rank $\le 3$ and contradicting the symmetry Lie algebra ($\dim \mathfrak{g}(\Perm_3) = 4$ vs.\ $6$).
+    \item \textbf{Singular Locus Obstruction:} Explicit $\mathbb{Z}[1/2]$ cofactors for all 24 grevlex Gr\"obner basis elements of the Jacobian ideal certify affine $\dim \mathrm{Sing}(V(\Perm_3)) \le 3 < 4$ (projectively $\le 2$), eliminating $|W| \le 2$.
+    \item \textbf{5-Plane Classification:} Exact $\mathbb{Z}[1/2]$ identities show the only 3-spaces $V$ with $\Perm_3 \in \langle V \rangle$ are the 6 row/column spaces, collapsing $Y^{(3)}$ to Chow rank $\le 3$ and contradicting the annihilator Lie algebra $\mathfrak{g}(f) = \{X \in \mathfrak{gl}_9(\mathbb{F}) : X \cdot f = 0\}$ ($\dim \mathfrak{g}(\Perm_3) = 4$ vs.\ $6$ for $\mathrm{char}(\mathbb{F}) \neq 2,3$, and $5$ vs.\ $7$ for $\mathrm{char}(\mathbb{F}) = 3$).
 \end{enumerate}
-{\emergencystretch 3em
-Hence $L_{\mathrm{mul}}(\Perm_3) = 7$ is an unconditional non-scalar multiplication lower bound over every field with $\mathrm{char}(\mathbb{F}) \neq 2$; the full algebraic certificates (SNF, Gr\"obner cofactors, and 5-plane identities) are included in the reproducibility package. In addition, the core structural lemmas of our framework---Walsh--Hadamard parity orthogonality (\texttt{walsh\_\-hadamard\_\-parity\_\-orthogonality\_\-zero}, \texttt{monomial\_\-parity\_\-annihilation} for Theorem~\ref{thm:deg_pres}), the symmetric rank-1 zero-diagonal obstruction (\texttt{sym\_\-rank1\_\-zero\_\-diag\_\-eq\_\-zero} for Proposition~5.1), and full Laplace cofactor expansion with degree-1/degree-2 collapse on \texttt{Matrix.permanent} (\texttt{permanent\_\-succ\_\-row\_\-zero}, \texttt{permanent\_\-deg1\_\-peeling}, \texttt{permanent\_\-deg2\_\-collapse})---are machine-checked in Lean~4 + Mathlib4 (\texttt{lean/PermanentProofs.lean}, zero \texttt{sorry}s). Furthermore, exhaustive Levenberg--Marquardt, bitsliced $\F_3/\F_5$, and Tesla T4 CUDA evolutionary searches ($6.55 \times 10^9$ circuit evaluations at $24.82$\,M circuits/sec, best residual $6/64$) over mixed-degree 17-multiplication $\Perm_4$ DAGs (combining $\mathrm{deg}_2 \times \mathrm{deg}_2$ and $\mathrm{deg}_1 \times \mathrm{deg}_3$ gates) found no 17-multiplication circuit, reinforcing 18 as tight.
+{\sloppy
+Hence $L_{\mathrm{mul}}(\Perm_3) = 7$ is an unconditional non-scalar multiplication lower bound over every field with $\mathrm{char}(\mathbb{F}) \neq 2$~\cite{bcs1997}; the full algebraic certificates (SNF, Gr\"obner cofactors, and 5-plane identities) are included in the reproducibility package. In addition, the core structural lemmas of our framework---Walsh--Hadamard parity orthogonality (\texttt{walsh\_\-hadamard\_\-parity\_\-orthogonality\_\-zero}, \texttt{monomial\_\-parity\_\-annihilation} for Theorem~\ref{thm:deg_pres}), the symmetric rank-1 zero-diagonal obstruction (\texttt{sym\_\-rank1\_\-zero\_\-diag\_\-eq\_\-zero} for Proposition~\ref{prop:row_layered}), and full Laplace cofactor expansion with degree-1/degree-2 collapse on \texttt{Matrix.permanent} (\texttt{permanent\_\-succ\_\-row\_\-zero}, \texttt{permanent\_\-deg1\_\-peeling}, \texttt{permanent\_\-deg2\_\-collapse})---are machine-checked in Lean~4 + Mathlib4 (\texttt{lean/PermanentProofs.lean}, zero \texttt{sorry}s). Furthermore, exhaustive Levenberg--Marquardt, bitsliced $\F_3/\F_5$, and Tesla T4 CUDA evolutionary searches ($6.55 \times 10^9$ circuit evaluations at $24.82$\,M circuits/sec, best residual $6/64$) over mixed-degree 17-multiplication $\Perm_4$ DAGs (combining $\mathrm{deg}_2 \times \mathrm{deg}_2$ and $\mathrm{deg}_1 \times \mathrm{deg}_3$ gates) found no 17-multiplication circuit, reinforcing 18 as tight.\par
 }
 
 \subsection{Exact Low-Rank Collapse in $O(n^r)$ Time}
 
 For structured inputs, Barvinok's polynomial identity \cite{barvinok1996} collapses low-rank matrix permanents to polynomial time:
 \begin{equation}
-\Perm(U V^T) = \sum_{k_1+\dots+k_r=n} \left(\prod_{j=1}^r k_j!\right) c_k(U)\, c_k(V),
+\Perm(U V^T) = \sum_{k_0+\dots+k_{r-1}=n} \left(\prod_{j=0}^{r-1} k_j!\right) c_k(U)\, c_k(V),
 \end{equation}
-where $c_k(M) = [x_1^{k_1} \cdots x_r^{k_r}] \prod_{i=0}^{n-1} \sum_{j=0}^{r-1} M_{i,j} x_j$.
+where $c_k(M) = [x_0^{k_0} \cdots x_{r-1}^{k_{r-1}}] \prod_{i=0}^{n-1} \sum_{j=0}^{r-1} M_{i,j} x_j$.
 Implemented in \texttt{src/low\_rank\_permanent.py}, this evaluates rank-$r$ permanents in $O(n^r)$ time, computing $n=10, r=2$ in $0.09$\,ms ($49.3\times$ faster than Glynn) and $n=20, r=3$ in $3.41$\,ms.
 
-\subsection{Hypercube Floor and $\#\mathbf{P}$-Completeness}
+\subsection{Hypercube Polarization and $\#\mathbf{P}$-Completeness}
 
 A central theoretical question is whether the hypercube polarization paradigm could drop below the exponential base $2$. Two structural barriers explain why our $O(2^n)$ bound preserves the exponential hardness of the exact permanent:
 
 \begin{enumerate}[leftmargin=*]
     \item \textbf{Counting Hardness ($\#\mathbf{P}$):} The matrix permanent is complete for Valiant's class $\#\mathbf{P}$~\cite{valiant1979}, and by Toda's theorem~\cite{toda1991}, $\mathbf{P}^{\#\mathbf{P}}$ contains the entire polynomial hierarchy $\mathbf{PH}$. Eliminating the polynomial factor $n$ from $\Theta(n \cdot 2^n)$ to $O(2^n)$ does not alter the exponential base $2$ or collapse $\#\mathbf{P}$.
-    \item \textbf{Information-Theoretic Parity Annihilation on the Hypercube:} Any polynomial evaluation formula over the Boolean hypercube $\{-1, 1\}^n$ that computes $\Perm(A)$ must project onto the parity character $\chi_{[n]}(\delta) = \prod_{i=1}^n \delta_i$. Because the Walsh--Hadamard transform of $\chi_{[n]}$ has full support over the dual cube, any circuit that decouples rows linearly must sample at least $2^{n-1}$ discrete hypercube states to annihilate all lower-degree spurious monomials $\prod_{i \in S} \delta_i$ with $|S| < n$.
+    \item \textbf{Hypercube Parity-Support Structure:} Any polynomial evaluation formula over the Boolean hypercube $\{\pm 1\}^{n-1}$ that evaluates $\Perm(A)$ by linearly decoupling rows must project onto the maximal parity character $\chi_{[m]}(y) = (-1)^{\wt{y}}$. Because the Walsh--Hadamard transform of $\chi_{[m]}$ has full support over the dual cube, our recursive dual-ball framework retains the exponential base $2$.
 \end{enumerate}
 
-\takeaway{Complexity Horizon (Preservation of $\#\mathbf{P}$)}{Generations 1--10 eliminate the polynomial factor $n$ from Glynn's $\Theta(n \cdot 2^n)$ non-scalar complexity, achieving the exact hypercube floor $O(2^n)$ ($1.602 \cdot 2^{15}$ at $n = 16$). Because the exponential base remains $2$, this does \emph{not} contradict $\#\mathbf{P}$-completeness. Breaking the hypercube base $2 \to (2 - \varepsilon)^n$ for general dense matrices would require abandoning hypercube polarization entirely, representing an uncharted frontier in algebraic complexity.}
+\takeaway{Complexity Horizon (Preservation of $\#\mathbf{P}$)}{Generations 1--10 eliminate the polynomial factor $n$ from Glynn's $\Theta(n \cdot 2^n)$ non-scalar multiplication complexity, achieving $O(2^n)$ non-scalar multiplications ($1.602 \cdot 2^{15}$ at $n = 16$) within our dual-ball butterfly family while total gate complexity remains $\Theta(n \cdot 2^n)$. Because the exponential base remains $2$, this does \emph{not} contradict $\#\mathbf{P}$-completeness. Breaking the hypercube base $2 \to (2 - \varepsilon)^n$ for general dense matrices would require abandoning hypercube polarization entirely, representing an uncharted frontier in algebraic complexity.}
 
 \section*{Reproducibility Package}
 All source code, symbolic certificates, C++17 kernels, and verification suites are publicly accessible and reproducible at: \\
@@ -324,7 +329,7 @@ Inductively set $\tilde{A}_m = A_m - A_m(0)$, $\tilde{B}_m = B_m - B_m(0)$, and 
 Over any field $\F$ with $\mathrm{char}(\F) \neq 2$, \eqref{eq:app_eq1} forces $\dim V_W \le |W|$.
 \end{lemma}
 \begin{proof}
-Let $r = |W|$ and let $M \in \F^{2r \times 9}$ have rows $\{L_m, R_m : m \in W\}$. Condition \eqref{eq:app_eq1} states $M^T J M = 0$ for the nondegenerate symmetric bilinear form $J = \begin{pmatrix} 0 & D \\ D & 0 \end{pmatrix}$ on $\F^{2r}$, where $D = \mathrm{diag}(w_m : m \in W)$ is invertible ($\mathrm{char}(\F) \neq 2$). Thus $\mathrm{colspace}(M)$ (equivalently $V_W$ as a subspace of $\F^{2r}/{\ker M^T}$) is totally isotropic for $J$, which bounds its dimension by half the ambient dimension: $\dim V_W \le \frac{1}{2}(2r) = |W|$.
+Let $r = |W|$ and let $M \in \F^{2r \times 9}$ have rows $\{L_m, R_m : m \in W\}$. Condition \eqref{eq:app_eq1} states $M^T J M = 0$ for the nondegenerate symmetric bilinear form $J = \begin{pmatrix} 0 & D \\ D & 0 \end{pmatrix}$ on $\F^{2r}$, where $D = \mathrm{diag}(w_m : m \in W)$ is invertible ($\mathrm{char}(\F) \neq 2$). Thus $\mathrm{colspace}(M) \subseteq \F^{2r}$ (with $\dim \mathrm{colspace}(M) = \dim \mathrm{rowspace}(M) = \dim V_W$) is totally isotropic for $J$, which bounds its dimension by half the ambient dimension: $\dim V_W \le \frac{1}{2}(2r) = |W|$.
 \end{proof}
 
 \begin{lemma}[Essential-Variable Inequality and Elimination of $M \le 5$]
@@ -335,24 +340,28 @@ Since $\Perm_3$ depends essentially on all $9$ variables (exact integer SNF of $
 \end{proof}
 
 \begin{lemma}[Singular Locus Obstruction and Elimination of $|W| \le 2$]
-Over $\mathrm{char}(\F) \neq 2$, $\dim \mathrm{Sing}(V(\Perm_3)) \le 2$ (certified by explicit $\mathbb{Z}[1/2]$ cofactors with denominators $\le 2$ for all $24$ grevlex Gr\"obner basis elements of the Jacobian ideal). Consequently, $\dim V_W \ge 3$ and $|W| \ge 3$ for $M = 6$.
+{\sloppy Over $\mathrm{char}(\F) \neq 2$, the affine singular locus has $\dim \mathrm{Sing}(V(\Perm_3)) \le 3$ (projective dimension $\le 2$; certified by explicit $\mathbb{Z}[1/2]$ cofactors with denominators $\le 2$ for all $24$ grevlex Gr\"obner basis elements of the Jacobian ideal). Consequently, $\dim V_W \ge 3$ and $|W| \ge 3$ for $M = 6$.\par}
 \end{lemma}
 \begin{proof}
-Suppose $|W| \le 2$ (with $6 \in W$ WLOG, so $\dim V_W \le |W| \le 2$). Consider the linear subspace $H \subset \F^9$ defined by vanishing of a basis of $V_W$ (at most $\dim V_W$ equations) together with $L_j = 0$ for all $j \in \{1,\dots,5\} \setminus W$ ($5 - |W|$ equations). On $H$, every term $L_j R_j M_j$ in \eqref{eq:app_eq2} has at least two vanishing linear factors ($M_j \in V_W$ and either $L_j = 0$ or $L_j, R_j \in V_W$), so $\Perm_3$ vanishes to order $\ge 2$ on $H$, i.e., $H \subseteq \mathrm{Sing}(V(\Perm_3))$. However, $\mathrm{codim}(H) \le \dim V_W + (5 - |W|) \le |W| + (5 - |W|) = 5$, giving $\dim H \ge 9 - 5 = 4 > 2 \ge \dim \mathrm{Sing}(V(\Perm_3))$, a contradiction. Thus $|W| \ge 3$ and $\dim V_W \ge 3$.
+Suppose $|W| \le 2$ (with $6 \in W$ WLOG, so $\dim V_W \le |W| \le 2$). Consider the linear subspace $H \subset \F^9$ defined by vanishing of a basis of $V_W$ (at most $\dim V_W$ equations) together with $L_j = 0$ for all $j \in \{1,\dots,5\} \setminus W$ ($5 - |W|$ equations). On $H$, every term $L_j R_j M_j$ in \eqref{eq:app_eq2} has at least two vanishing linear factors ($M_j \in V_W$ and either $L_j = 0$ or $L_j, R_j \in V_W$), so $\Perm_3$ vanishes to order $\ge 2$ on $H$, i.e., $H \subseteq \mathrm{Sing}(V(\Perm_3))$. However, $\mathrm{codim}(H) \le \dim V_W + (5 - |W|) \le |W| + (5 - |W|) = 5$, giving $\dim H \ge 9 - 5 = 4 > 3 \ge \dim \mathrm{Sing}(V(\Perm_3))$, a contradiction. Thus $|W| \ge 3$ and $\dim V_W \ge 3$.
 \end{proof}
 
 \begin{lemma}[5-Plane Classification and Elimination of $(M, |W|) = (6, 3)$]
 Over $\mathrm{char}(\F) \neq 2$, the only $3$-dimensional subspaces $V \subset (\F^9)^*$ with $\Perm_3 \in \langle V \rangle$ are the $6$ row and column spaces. Furthermore, $\mathrm{ChowRank}_{\F}(\Perm_3) \ge 4$. Hence $(M, |W|) = (6, 3)$ is impossible.
 \end{lemma}
 \begin{proof}
-Elementary elimination over $\mathbb{Z}[1/2]$ across all $S_3 \times S_3 \times \mathbb{Z}_2$ pivot-triple orbits shows that any $6$-dimensional subspace $V^\perp \subset V(\Perm_3)$ is a zero row or zero column. By integer SNF of the $81$-column Lie algebra matrices, $\dim \mathfrak{g}(\Perm_3) = 4$ (SNF $[1,2]$) whereas $\dim \mathfrak{g}(y_1 y_2 y_3 + y_4 y_5 y_6 + y_7 y_8 y_9) = 6$ (SNF $[1]$), so $\mathrm{ChowRank}_{\F}(\Perm_3) \ge 4$. For $(M, |W|) = (6, 3)$, WLOG $6 \in W$ and $V_W = \mathrm{span}(A_{20}, A_{21}, A_{22})$. For the $2$ gates $m \in W \cap \{1..5\}$, $L_m R_m M_m \in \mathrm{Sym}^3(V_W)$ is purely cubic in row $2$, whereas $\Perm_3$ is linear in row $2$. Extracting the row-$2$-linear component of \eqref{eq:app_eq2} expresses $\Perm_3$ as a sum of at most $5 - 2 = 3$ products of $3$ linear forms, contradicting $\mathrm{ChowRank}_{\F}(\Perm_3) \ge 4$.
+Elementary elimination over $\mathbb{Z}[1/2]$ across all $S_3 \times S_3 \times \mathbb{Z}_2$ pivot-triple orbits shows that any $6$-dimensional subspace $V^\perp \subset V(\Perm_3)$ is a zero row or zero column. For a cubic form $f$, let $\mathfrak{g}(f) = \{X \in \mathfrak{gl}_9(\F) : X \cdot f = 0\}$ be its annihilator Lie algebra (computed via $81$-column linear-system matrices). By Euler's identity $I_9 \cdot f = 3f$, $I_9 \in \ker_{\F_3}$ for both cubics, so the integer SNF has a factor divisible by $3$; nevertheless, $\dim \mathfrak{g}(\Perm_3) = 4$ vs.\ $\dim \mathfrak{g}(y_1 y_2 y_3 + y_4 y_5 y_6 + y_7 y_8 y_9) = 6$ for $\mathrm{char}(\F) \neq 2,3$, and $5$ vs.\ $7$ for $\mathrm{char}(\F) = 3$, so $\mathrm{ChowRank}_{\F}(\Perm_3) \ge 4$ over every field with $\mathrm{char}(\F) \neq 2$. For $(M, |W|) = (6, 3)$, WLOG $6 \in W$ and $V_W = \mathrm{span}(A_{20}, A_{21}, A_{22})$. For the $2$ gates $m \in W \cap \{1..5\}$, $L_m R_m M_m \in \mathrm{Sym}^3(V_W)$ is purely cubic in row $2$, whereas $\Perm_3$ is linear in row $2$. Extracting the row-$2$-linear component of \eqref{eq:app_eq2} expresses $\Perm_3$ as a sum of at most $5 - 2 = 3$ products of $3$ linear forms, contradicting $\mathrm{ChowRank}_{\F}(\Perm_3) \ge 4$.
 \end{proof}
 
-\begin{thebibliography}{9}
+\begin{thebibliography}{10}
 \bibitem{valiant1979} L.~G.~Valiant, ``The complexity of computing the permanent,'' \emph{Theoretical Computer Science}, vol.~8, no.~2, pp.~189--201, 1979.
 \bibitem{ryser1963} H.~J.~Ryser, \emph{Combinatorial Mathematics}, Carus Mathematical Monographs, No.~14, Mathematical Association of America, 1963.
+\bibitem{nijenhuis1978} A.~Nijenhuis and H.~S.~Wilf, \emph{Combinatorial Algorithms for Computers and Calculators}, 2nd ed., Academic Press, 1978.
 \bibitem{glynn2010} D.~G.~Glynn, ``The permanent of a square matrix,'' \emph{European Journal of Combinatorics}, vol.~31, no.~7, pp.~1887--1891, 2010.
+\bibitem{bhkk2007} A.~Bj\"orklund, T.~Husfeldt, P.~Kaski, and M.~Koivisto, ``Fourier meets M\"obius: Fast subset convolution,'' in \emph{Proceedings of the 39th Annual ACM Symposium on Theory of Computing (STOC)}, pp.~67--74, 2007.
 \bibitem{barvinok1996} A.~I.~Barvinok, ``Two algorithmic results for the traveling salesman problem,'' \emph{Mathematics of Operations Research}, vol.~21, no.~1, pp.~65--84, 1996.
+\bibitem{bcs1997} P.~B\"urgisser, M.~Clausen, and M.~A.~Shokrollahi, \emph{Algebraic Complexity Theory}, Grundlehren der mathematischen Wissenschaften, vol.~315, Springer, 1997.
+\bibitem{landsberg2012} J.~M.~Landsberg, \emph{Tensors: Geometry and Applications}, Graduate Studies in Mathematics, vol.~128, American Mathematical Society, 2012.
 \bibitem{aaronson2011} S.~Aaronson and A.~Arkhipov, ``The computational complexity of linear optics,'' in \emph{Proceedings of the 43rd Annual ACM Symposium on Theory of Computing (STOC)}, pp.~333--342, 2011.
 \bibitem{toda1991} S.~Toda, ``$\mathbf{PP}$ is as hard as the polynomial-time hierarchy,'' \emph{SIAM Journal on Computing}, vol.~20, no.~5, pp.~865--877, 1991.
 \end{thebibliography}
