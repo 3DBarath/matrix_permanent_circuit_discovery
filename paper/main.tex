@@ -114,7 +114,7 @@ Let $K(n, d) = \sum_{w=0}^{d} \binom{n-1}{w}$ denote the dimension of multilinea
 
 \begin{theorem}[Degree Preservation Under Annihilation]
 \label{thm:deg_pres}
-Let $U, V : \{0,1\}^m \to \mathbb{F}$ be multilinear polynomials of degrees $\deg(U) \le a$ and $\deg(V) \le b$ ($a, b \ge 1$, $a + b \le m$) that agree modulo degrees $\le a - 2$ and $\le b - 2$ with the partial row products $\prod_{r \in I} (v \cdot A_r)$ and $\prod_{r \in J} (v \cdot A_r)$ ($I \cap J = \emptyset$, $\wt{I} = a$, $\wt{J} = b$). Choose $c_1$ of degree $\le a - 2$ matching $U$ on the low-weight ball $Z_1 = \{y : \wt{y} \le a - 2\}$ and $c_2$ of degree $\le b - 2$ matching $V$ on the high-weight ball $Z_2 = \{y : \wt{y} \ge m - (b - 2)\}$. Then:
+Let $U, V : \{0,1\}^m \to \mathbb{F}$ be multilinear polynomials of degrees $\deg(U) \le a$ and $\deg(V) \le b$ ($a, b \ge 1$, $a + b \le m$) satisfying $\deg(U - \prod_{r \in I} (v \cdot A_r)) \le a - 2$ and $\deg(V - \prod_{r \in J} (v \cdot A_r)) \le b - 2$ ($I \cap J = \emptyset$, $\wt{I} = a$, $\wt{J} = b$). Choose $c_1$ of degree $\le a - 2$ matching $U$ on the low-weight ball $Z_1 = \{y : \wt{y} \le a - 2\}$ and $c_2$ of degree $\le b - 2$ matching $V$ on the high-weight ball $Z_2 = \{y : \wt{y} \ge m - (b - 2)\}$. Then:
 \begin{enumerate}
   \item $Z_1 \cap Z_2 = \emptyset$ whenever $a + b < n + 3$ (which always holds for $a + b \le n - 1$).
   \item $W = (U - c_1)(V - c_2)$ preserves the upper degree bound $\deg(W) \le a + b$ and agrees with $\prod_{r \in I \cup J} (v \cdot A_r)$ modulo degree $\le a + b - 2$.
@@ -145,7 +145,7 @@ Since every degree-$\le (n - 2)$ polynomial lies in $\mathrm{span}\{\chi_S : \wt
 Under the hypotheses of Theorem~\ref{thm:deg_pres} with $k = a + b \le m$ and $a \le b$, swap the ball assignments by symmetry so that $V$ (larger degree $b$) is annihilated on the low-weight ball $Z_b = \{y : \wt{y} \le b - 2\} \subset P_k = \{y : \wt{y} \le k\}$ (with $P_m = \{0,1\}^m$ when $k = m$) and $U$ is annihilated on the high-weight ball $Z_a = \{y : \wt{y} \ge m - (a - 2)\}$. Then $W = (U - c_1)(V - c_2)$ lies in the $K(n, k)$-dimensional space of degree-$\le k$ polynomials and vanishes on $Z_a \cup Z_b$ (of total size $K(n, a-2) + K(n, b-2)$).
 \begin{itemize}
   \item \textbf{Mechanism F1 (Pure M\"obius--Zeta Butterfly, Gen 9):} Placing $Z_b \subset P_k$ inside the canonical pivot basis $P_k$ determines $W$ from $K(n, k) - K(n, b - 2)$ non-scalar multiplications with zero matrix inversion.
-  \item \textbf{Mechanism F2 (Schur-Complement Butterfly, Gen 10):} Dropping $r = K(n, a-2)$ pivot masks $D \subset P_k \setminus Z_b$ determines $W$ from $K(n, k) - K(n, a-2) - K(n, b-2)$ non-scalar multiplications whenever the resulting $r \times r$ incidence matrix $M$ is nonsingular over $\mathbb{F}$. Letting $W^{(0)}$ denote the degree-$\le k$ interpolant matching $W$ on $P_k \setminus D$ and $0$ on $D$, the missing values $\lambda = W|_D$ satisfy $M \lambda = -W^{(0)}|_{Z_a}$. When each $y_t \in D$ has weight $k$, its Lagrange basis polynomial in $P_k$ is $e_{y_t}(z) = \mathbf{1}[y_t \subseteq z]$, and $M$ incurs $O(r^2)$ scalar operations for $a \ge 3$ (for $a = 2$, $r = 1$ and $M = [[1]]$ unconditionally, requiring zero scalar multiplications). Nonsingularity of $M$ holds unconditionally for $a = 2$ and is verified over the 61-bit primes $p_1, p_2$ for all tested $n \le 12$ (for $a \ge 3$ in small odd characteristic $3 \le p \le m$, general pivot masks in $P_k \setminus Z_b$ may be required).
+  \item \textbf{Mechanism F2 (Schur-Complement Butterfly, Gen 10):} Dropping $r = K(n, a-2)$ pivot masks $D \subset P_k \setminus Z_b$ determines $W$ from $K(n, k) - K(n, a-2) - K(n, b-2)$ non-scalar multiplications whenever the resulting $r \times r$ incidence matrix $M$ is nonsingular over $\mathbb{F}$. Letting $W^{(0)}$ denote the degree-$\le k$ interpolant matching $W$ on $P_k \setminus D$ and $0$ on $D$, the missing values $\lambda = W|_D$ satisfy $M \lambda = -W^{(0)}|_{Z_a}$. When $r \le \binom{m}{k}$ and each $y_t \in D$ is chosen of weight $k$, its Lagrange basis polynomial in $P_k$ is $e_{y_t}(z) = \mathbf{1}[y_t \subseteq z]$; otherwise, general masks in $P_k \setminus Z_b$ and their Lagrange basis polynomials are used. With $M^{-1}$ precomputed per $(n, k, a, \mathbb{F})$, solving for $\lambda$ incurs $O(r^2)$ scalar operations for $a \ge 3$ (online elimination would cost $O(r^3)$; for $a = 2$, $r = 1$ and $M = [[1]]$ unconditionally, requiring zero scalar multiplications). Nonsingularity of $M$ holds unconditionally for $a = 2$ and is verified over the 61-bit primes $p_1, p_2$ for all tested $n \le 12$ (for $a \ge 3$ in small odd characteristic $3 \le p \le m$, general pivot masks in $P_k \setminus Z_b$ may be required).
 \end{itemize}
 \end{theorem}
 
@@ -156,13 +156,13 @@ By Theorem~\ref{thm:deg_pres} with the roles of $U$ and $V$ swapped, $W = (U - c
 Defining the Walsh--Hadamard transform $\widehat{U}(S) = 2^{-m} \sum_{y \in \{0,1\}^m} U(y) \chi_S(y)$, Parseval's identity at the root gives $\sum_{y} \sigma_y U(y) V(y) = 2^m \sum_{S} \widehat{U}(S)\widehat{V}(\overline{S})$. Because $\widehat{V}(\overline{S}) = 0$ for $|\overline{S}| > n - a$ and $\widehat{U}(S) = 0$ for $|S| > a$, the root sum restricts to $a - 1 \le |S| \le a$, yielding $\binom{n-1}{a-1} + \binom{n-1}{a} = \binom{n}{a}$ multiplications by Pascal's identity. Combining this with Theorems~\ref{thm:deg_pres} and~\ref{thm:mech_f} gives the dynamic-programming recurrence for the dual-ball tree non-scalar multiplication count:
 \begin{align}
   T(1) &= 0, \\
-  T(k) &= \min_{1 \le a \le \lfloor k/2 \rfloor} \Big( T(a) + T(k-a) + K(n,k) - K(n,a-2) - K(n,k-a-2) \Big), \\
+  T(k) &= \min_{1 \le a \le \lfloor k/2 \rfloor} \Big( T(a) + T(k-a) + K(n,k) - K(n,a-2) - K(n,k-a-2) \Big), \label{eq:dp_f2} \\ \\
   \mathrm{Opt}_{\mathrm{F2}}(n) &= \min_{1 \le a \le \lfloor n/2 \rfloor} \Big( T(a) + T(n-a) + \binom{n}{a} \Big).
 \end{align}
 
 \begin{theorem}[Asymptotic $O(2^n)$ Multiplicative Complexity]
 \label{thm:asymptotic_2n}
-For all $n \ge 3$, the recurrence satisfies $\mathrm{Opt}_{\mathrm{F2}}(n) \le 2^{n-1} + o(2^n) = O(2^n)$.
+For all $n \ge 3$ and every field $\mathbb{F}$ with $\mathrm{char}(\mathbb{F}) \neq 2$, the unconditional Mechanism~F1 recurrence $\mathrm{Opt}_{\mathrm{F1}}(n)$ (obtained by omitting $-K(n,a-2)$ in~\eqref{eq:dp_f2}) satisfies $\mathrm{Opt}_{\mathrm{F1}}(n) \le 2^{n-1} + o(2^n) = O(2^n)$. Whenever Mechanism~F2's incidence matrices $M$ are nonsingular, $\mathrm{Opt}_{\mathrm{F2}}(n) \le \mathrm{Opt}_{\mathrm{F1}}(n) \le 2^{n-1} + o(2^n) = O(2^n)$ as well.
 \end{theorem}
 
 \begin{proof}
@@ -194,7 +194,7 @@ Circuits across Generations~1--10 were verified symbolically in $\mathbb{Q}[A]$ 
 \begin{table}[!htbp]
 \centering
 \small
-\caption{Exact non-scalar multiplications across Generations 3--10, and total arithmetic gates and depth for Gen~9 (F1) vs.\ Glynn + Gray code baseline (note: Gen~10 incurs $O(r^2)$ additional scalar operations for $a \ge 3$).}
+\caption{Exact non-scalar multiplications across Generations 3--10, and total arithmetic gates and depth for Gen~9 (F1) vs.\ Glynn + Gray code baseline. Gen~9 remains the total-gate champion (e.g., Gen~10 uses $12{,}125$ gates at $n=10$ and $57{,}188$ at $n=12$ due to Schur-complement overhead).}
 \label{tab:main_scaling}
 \resizebox{\linewidth}{!}{%
 \begin{tabular}{rrrrrrrrr}

@@ -107,7 +107,7 @@ Let $G = (U, V, E, W)$ denote the edge-weighted bipartite graph associated with 
 \subsection{Forced Edge Peeling (Degree-1 Elimination)}
 
 \begin{lemma}[Degree-1 Peeling]
-If row $u_r$ has degree 1 with single non-zero entry $A_{r, c} = w \neq 0$, then:
+If any row or column of $A$ is identically zero, $\Perm(A) = 0$. If row $u_r$ has degree 1 with single non-zero entry $A_{r, c} = w \neq 0$, then:
 \begin{equation}
 \Perm(A) = w \cdot \Perm(A_{\setminus r, \setminus c}),
 \end{equation}
@@ -137,11 +137,11 @@ By cofactor expansion along row $r$:
 \begin{equation}
 \Perm(A) = w_1 \Perm(A_{\setminus r, \setminus c_1}) + w_2 \Perm(A_{\setminus r, \setminus c_2}).
 \end{equation}
-In both $(n-1) \times (n-1)$ matrices $A_{\setminus r, \setminus c_1}$ and $A_{\setminus r, \setminus c_2}$, all columns other than $c_1$ and $c_2$ are identical. Using column-permutation invariance of $\Perm$ to align the remaining column $c_2$ in $A_{\setminus r, \setminus c_1}$ with $c_1$ in $A_{\setminus r, \setminus c_2}$, multilinearity of the permanent with respect to its columns yields:
+In both $(n-1) \times (n-1)$ matrices $A_{\setminus r, \setminus c_1}$ and $A_{\setminus r, \setminus c_2}$, all columns other than $c_1$ and $c_2$ are identical. Using invariance of $\Perm$ under arbitrary column permutations (including the cyclic shift aligning the surviving column $c_2$ in $A_{\setminus r, \setminus c_1}$ with $c_1$ in $A_{\setminus r, \setminus c_2}$ without sign change), multilinearity of the permanent with respect to its columns yields:
 \begin{equation}
 w_1 \Perm(A_{\setminus r, \setminus c_1}) + w_2 \Perm(A_{\setminus r, \setminus c_2}) = \Perm(\tilde{A}),
 \end{equation}
-where $\tilde{A}$ replaces column $c_1$ with $w_2 \cdot \mathrm{col}(c_1) + w_1 \cdot \mathrm{col}(c_2)$ and deletes column $c_2$ and row $r$. This matches the definition of $A'$, completing the proof.
+where $\tilde{A}$ replaces column $c_1$ with $w_2 \cdot \mathrm{col}(c_1) + w_1 \cdot \mathrm{col}(c_2)$ and deletes column $c_2$ and row $r$. This matches the definition of $A'$ (noting that entries $w_1 A_{i,c_2} + w_2 A_{i,c_1}$ may cancel to $0$ in $\F$, further reducing degree), completing the proof.
 \end{proof}
 
 \begin{corollary}[Column Series Contraction]
@@ -154,7 +154,7 @@ preserves $\Perm(A) = \Perm(A')$ over any field $\F$.
 
 \subsection{Component Factorization and Hall Violation}
 
-If the bipartite incidence graph decomposes into $k$ connected components $G = G_1 \sqcup \dots \sqcup G_k$ with row sets $U_m$ and column sets $V_m$, two cases arise. If $|U_m| \neq |V_m|$ for any component (a component-balance violation implying a Hall violation on $U_m$ or $V_m$), no perfect matching can exist and $\Perm(A) = 0$ immediately. Otherwise, if $|U_m| = |V_m| = n_m$ for all $m$, the matrix can be permuted into block diagonal form, yielding
+If the bipartite incidence graph decomposes into $k$ connected components $G = G_1 \sqcup \dots \sqcup G_k$ with row sets $U_m$ and column sets $V_m$, two cases arise. If $|U_m| \neq |V_m|$ for any component (a necessary component-balance violation implying a Hall violation on $U_m$ or $V_m$; Hall violations inside balanced components are not separately tested), no perfect matching can exist and $\Perm(A) = 0$ immediately. Otherwise, if $|U_m| = |V_m| = n_m$ for all $m$, the matrix can be permuted into block diagonal form, yielding
 \begin{equation}
 \Perm(A) = \prod_{m=1}^k \Perm(A[U_m, V_m]).
 \end{equation}
@@ -179,7 +179,7 @@ fw(\pi) = \max_{1 \le t \le n} fw(t).
 
 \subsection{Greedy Min-Frontier Row Ordering}
 
-Finding the ordering $\pi$ that minimizes $fw(\pi)$ is equivalent to computing the pathwidth of the bipartite incidence graph, which is $\NP$-hard in general. We use a greedy heuristic that iteratively selects the next row $\pi_{t+1}$ minimizing the net change in active frontier size:
+Finding the ordering $\pi$ that minimizes $fw(\pi)$ corresponds to a one-sided (row-ordered) pathwidth variant on the bipartite incidence graph (distinct from unconstrained bipartite pathwidth, which allows interleaving row and column vertices, and likewise $\NP$-hard in general). We use a greedy heuristic that iteratively selects the next row $\pi_{t+1}$ minimizing the net change in active frontier size:
 \begin{equation}
 \mathrm{cost}(r) = \Delta \mathrm{Open}(r) - \Delta \mathrm{Close}(r),
 \end{equation}
@@ -221,7 +221,7 @@ In both branches, the appearance of degree-2 vertices immediately triggers Theor
 
 \subsection{Empirical Scaling on $d$-Regular Bipartite Graphs}
 
-To evaluate the sub-$2^n$ scaling of the solver, we benchmarked weighted $d$-regular bipartite graphs over 61-bit primes $\F_p$ ($p = 2^{61}-1$). In these instances, graph reductions simplify peripheral paths, adaptive cascade-branching triggers cascading degree-2 contractions, and min-frontier ordering finds narrow path decompositions.
+To evaluate the sub-$2^n$ scaling of the solver, we benchmarked random weighted $d$-regular bipartite graphs (constructed as random $d$-regular bipartite multigraphs/simple graphs with uniform nonzero weights in $\F_p$, $p = 2^{61}-1$; ``Generation'' labels throughout denote successive solver revisions in the accompanying repository). Averages in Tables~\ref{tab:sparse_scaling}--\ref{tab:cpp_sparse_bench} are taken over multiple random instances per size (hence fractional mean operation and branch counts; individual graph instances vary depending on expansion and cut width). In these instances, graph reductions simplify peripheral paths, adaptive cascade-branching triggers cascading degree-2 contractions, and min-frontier ordering finds narrow path decompositions.
 
 \begin{table}[!htbp]
 \centering
