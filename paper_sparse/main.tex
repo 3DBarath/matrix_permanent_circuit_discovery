@@ -217,18 +217,14 @@ When the graph reductions reach a fixed point where every remaining vertex has d
 \Perm(A) = w^* \cdot \Perm(A_{\setminus r^*, \setminus c^*}) + \Perm(A_{- (r^*, c^*)}).
 \end{equation}
 
-\begin{theorem}[Cascade-Branching Avalanche]
+\begin{proposition}[First-Step Cascade-Branching Recurrence]
 Let $G$ be a 3-regular bipartite graph. Selecting an edge $(r^*, c^*)$:
 \begin{enumerate}[leftmargin=*]
     \item \textbf{Inclusion Branch ($A_{\setminus r^*, \setminus c^*}$):} Removing row $r^*$ and column $c^*$ deletes 4 adjacent edges, immediately reducing 4 neighboring vertices to degree 2.
     \item \textbf{Exclusion Branch ($A_{- (r^*, c^*)}$):} Deleting edge $(r^*, c^*)$ immediately reduces vertex $r^*$ and vertex $c^*$ to degree 2.
 \end{enumerate}
-In both branches, the appearance of degree-2 vertices immediately triggers Theorem~\ref{thm:deg2_contraction} series contractions, inducing an avalanche reduction cascade satisfying the recurrence:
-\begin{equation}
-T(n) \le T(n - 5) + T(n - 2),
-\end{equation}
-whose characteristic root yields an asymptotic branching upper bound of $\lambda \approx \mathbf{1.236}$.
-\end{theorem}
+In both branches, the appearance of degree-2 vertices immediately triggers Theorem~\ref{thm:deg2_contraction} series contractions, reducing the first branching step to sizes $(n - 5, n - 2)$ (or smaller if parallel edges/degree-1 vertices form). Locally, the recurrence $T(n) \le T(n - 5) + T(n - 2)$ has characteristic root $\lambda \approx \mathbf{1.236}$; note that contracting degree-2 vertices can merge degree-3 neighbors into vertices of degree $4$, so deeper branching steps need not remain 3-regular (consistent with the empirical $1.303^n$ deep-branching scaling in Section~4.2).
+\end{proposition}
 
 \section{Experimental Results}
 
