@@ -46,12 +46,23 @@ Exact, branch-free arithmetic Straight-Line Programs (SLPs) for the $n \times n$
 matrix_permanent_circuit_discovery/
 ├── README.md                              # Summary benchmarks, roadmap, and layout
 ├── FINDINGS.md                            # Mathematical proofs, theorems, and complexity analysis
-├── RESEARCH_AND_STEP_LOG.md               # Chronological log across Generations 0-10
+├── RESEARCH_AND_STEP_LOG.md               # Chronological log across Generations 0-19
 ├── .gitignore                             # Clean build filters
 ├── paper/
-│   ├── main.tex                           # Full arXiv / conference LaTeX manuscript
-│   ├── main.pdf                           # Compiled PDF preprint (Tectonic XeTeX)
+│   ├── main.tex                           # Paper I: Dense O(2^n) + Lower Bounds (arXiv LaTeX)
+│   ├── main.pdf                           # Compiled PDF preprint
 │   └── README.md                          # Submission guidelines
+├── paper_sparse/
+│   ├── main.tex                           # Paper II: Sub-2^n Sparse Permanent & Extensions
+│   └── main.pdf                           # Compiled PDF preprint
+├── lean/
+│   └── PermanentProofs.lean               # Lean 4 + Mathlib4 formal proofs (zero sorrys)
+├── colab/
+│   ├── sparse_permanent_cuda.cu           # Batched Tesla T4 CUDA Frontier DP solver
+│   ├── perm4_17mul_search.cu              # 64-lane bitsliced F_3/F_5 CUDA search for Perm_4
+│   ├── run_in_colab.ipynb                 # Sparse CUDA Colab notebook
+│   ├── run_lean_in_colab.ipynb            # Lean 4 + Mathlib4 Colab notebook
+│   └── run_perm4_search.ipynb             # Perm_4 17-mul CUDA search notebook
 ├── src/
 │   ├── __init__.py
 │   ├── tracked_field.py                   # TrackedFieldElement op accounting + Glynn baseline
@@ -64,9 +75,15 @@ matrix_permanent_circuit_discovery/
 │   ├── slp_compiler.py                    # Gen 6: SLP SSA compiler with algebraic CSE + DCE
 │   ├── opttree_native_mod61.cpp           # Gen 6: Native C++17 hardware benchmark mod (2^61 - 1)
 │   ├── bench_poly8_mod61.cpp              # Gen 7: SIMD polynomial-ring benchmark F_p[x]/(x^8 - 2)
-│   └── low_rank_permanent.py              # Gen 9: Exact O(n^r) polynomial-time solver for rank-r
-└── tests/
-    └── run_all_verifications.py           # Anti-cheat verification test suite (Q[A] + 61-bit primes)
+│   ├── low_rank_permanent.py              # Gen 9: Exact O(n^r) polynomial-time solver for rank-r
+│   ├── sparse_permanent.py                # Gen 11: Python sub-2^n sparse permanent solver
+│   ├── sparse_permanent.cpp               # Gen 12-19: C++17 + OpenMP sparse permanent (3-reg & --4reg)
+│   ├── boson_sampling_complex.cpp         # Gen 16: Complex unitary Boson Sampling permanent solver
+│   └── sparse_hafnian.cpp                 # Gen 16-18: Exact sub-2^n Sparse Hafnian solver
+├── tests/
+│   ├── run_all_verifications.py           # Anti-cheat verification test suite (Q[A] + 61-bit primes)
+│   └── test_sparse_permanent.py           # Bit-exact sparse permanent verification suite
+└── archive/                               # Historical zips, prototypes, and autoresearch reports
 ```
 
 ---
@@ -92,15 +109,15 @@ print(f'n=6 Gen 10 non-scalar muls: {plan[\"non_scalar_muls\"]}')
 
 ---
 
-## Generation 11–16 Highlights
-- **Dense Circuits (Gen 1–10):** Eliminated Glynn's $(n-1)$ factor to hit the exact $O(2^n)$ linear hypercube floor ($52,488$ muls at $n=16$, $-89.3\%$), with $-13.1\%$ total gates at $n=12$ and up to $2.86\times$ C++17 wall-clock speedup.
+## Generation 11–19 Highlights
+- **Dense Circuits & Lower Bounds (Gen 1–10, 15, 19):** Eliminated Glynn's $(n-1)$ factor to hit the exact $O(2^n)$ linear hypercube floor ($52,488$ muls at $n=16$, $-89.3\%$), with $-13.1\%$ total gates at $n=12$ and up to $2.86\times$ C++17 wall-clock speedup. Proved unconditional $L_{\mathrm{mul}}(\mathrm{Perm}_3) = 7$ over $\mathrm{char}(\mathbb{F}) \neq 2$ via 5 machine-certified $\mathbb{Z}[1/2]$ lemmas, and ran a **6.55B-circuit** Tesla T4 CUDA search (`24.82 M/s`, best loss `6/64`) reinforcing 18 as tight at $n=4$.
 - **Low-Rank Collapse (Gen 9):** Exact $O(n^r)$ polynomial-time Barvinok solver (`src/low_rank_permanent.py`).
-- **Sparse & Graph Permanents (Gen 11–15):** Exact sub-$2^n$ C++17 + OpenMP solver (`src/sparse_permanent.cpp`) solving **$72 \times 72$ weighted 3-regular permanents in 0.58s–2.12s** (**$4.05 \times 10^{13}\times$ fewer ops** than $2^{72}$).
-- **Generation 16 Extensions:**
+- **Sparse & Graph Permanents (Gen 11–19):** Exact sub-$2^n$ C++17 + OpenMP solver (`src/sparse_permanent.cpp`) solving **$72 \times 72$ weighted 3-regular permanents in 2.12s (2t) / 580.49 ms (8t)** (**$4.05 \times 10^{13}\times$ fewer ops** than $2^{72}$), and 4-regular `n=28` in **97,224 ops** (`3.61 ms`, `br=1.0`, `--4reg`).
+- **Quantum, GPU & Formal Verification Extensions (Gen 16–19):**
   - **Complex Boson Sampling (`src/boson_sampling_complex.cpp`):** `std::complex<double>` with `long double` accumulation, solving $n=60$ complex unitary permanents in **192.15 ms** (`0.000e+00` error vs. Glynn).
-  - **Sparse Hafnians (`src/sparse_hafnian.cpp`):** Exact sub-$2^n$ non-bipartite Hafnian solver for Gaussian Boson Sampling ($n=36$ in **0.138 ms**).
-  - **CUDA Colab Kernel (`colab/sparse_permanent_cuda.cu` & `colab/run_in_colab.ipynb`):** GPU-batched Frontier DP.
-  - **Lean 4 Formalization (`lean/PermanentProofs.lean`):** Machine-checked formalization of Degree-2 contraction and Depth-3 $\Sigma\Pi\Sigma$ product rank.
+  - **Sparse Hafnians (`src/sparse_hafnian.cpp`):** Exact sub-$2^n$ non-bipartite Hafnian solver for Gaussian Boson Sampling, scaling to **$n=72$ in 5.09 ms** (and 4-regular $n=24$ in **0.117 ms**).
+  - **CUDA Colab Kernel (`colab/sparse_permanent_cuda.cu`):** GPU-batched Frontier DP with 32 KB shared memory and atomic-free compression, solving 3-regular **$n=64$ in 1.37 s** and **$n=72$ in 19.04 s–19.80 s** on Tesla T4.
+  - **Lean 4 Formalization (`lean/PermanentProofs.lean`):** Machine-checked formalizations (`perm_degree2_row_cofactor_collapse`, `deg1_peeling_row_cofactor`, `essential_var_eliminates_le_five`, `essential_var_m6_forces_w_le_3`) typechecked cleanly in Colab with zero `sorry`s.
 - **Preprint Papers:**
-  - **Paper I ([`paper/main.pdf`](paper/main.pdf)):** Dense $O(2^n)$ Hypercube Floor + Depth-3 $\Sigma\Pi\Sigma$ Proof.
-  - **Paper II ([`paper_sparse/main.pdf`](paper_sparse/main.pdf)):** Sub-$2^n$ Sparse Permanent ($n=72$) + Gen 16 Extensions.
+  - **Paper I ([`paper/main.pdf`](paper/main.pdf)):** Dense $O(2^n)$ Hypercube Floor + Unconditional $\mathrm{Perm}_3$ Lower Bound.
+  - **Paper II ([`paper_sparse/main.pdf`](paper_sparse/main.pdf)):** Sub-$2^n$ Sparse Permanent ($n=72$) + Gen 16–19 Extensions.

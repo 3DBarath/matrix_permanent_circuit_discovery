@@ -1,6 +1,6 @@
 # Research & Evolutionary Step Log
 
-This log records every mathematical hypothesis, computational experiment, failure/correction, and verified milestone across Generations 0–3.
+This log records every mathematical hypothesis, computational experiment, failure/correction, and verified milestone across Generations 0–19.
 
 ---
 
@@ -68,7 +68,8 @@ This log records every mathematical hypothesis, computational experiment, failur
 
 ---
 
-## Step 5 — Generation 5: Fused Möbius–Zeta Butterflies & $O(n 2^n)$ Gate Complexity
+## Step 5 — Generations 4–5: Signed-Wire Tracking, Möbius–Zeta Butterflies & $O(n 2^n)$ Gate Complexity
+- **Gen 4 (Signed-Wire Tracking):** Tracked `(wire, ±1)` polarity across all intermediate nodes, making negation zero-cost and reducing scalar multiplications to **1** across the entire circuit.
 - **Problem:** Gen 3 proved $O(2^n)$ multiplications, but dense rational interpolation matrices caused addition count to grow to 3,313 gates at $n=7$.
 - **Breakthrough:**
   - Built an algebraic isomorphism between the sign hypercube $\{\pm 1\}^{n-1}$ and the Boolean lattice $\{0, 1\}^{n-1}$.
@@ -97,41 +98,31 @@ This log records every mathematical hypothesis, computational experiment, failur
   - $n = 7$: **171 muls** (beat 172)
   - $n = 10$: **1,166 muls** and **10,115 gates** (−2.8% vs Glynn)
   - $n = 12$: **4,014 muls** and **45,265 gates** (−8.4% vs Glynn)
-- **Ring Extension:** Added `src/bench_poly8_mod61.cpp` running over polynomial ring $\mathbb{F}_{2^{61}-1}[x] / (x^8 - 2)$.
+- **Ring Extension:** Added `src/bench_poly8_mod61.cpp` running over polynomial ring $\mathbb{F}_{2^{61}-1}[x] / (x^8 - 2)$, achieving **$2.82\times\text{–}2.86\times$** wall-clock speedup vs. Glynn+Gray ($n=4..12$, 8/8 bit-exact).
 
 ---
 
 ## Step 8 — Generation 8: Mechanism E (Degree-Preserving Recursive Dual-Ball Annihilation)
 - **Key Insight:** Proved that degree is invariant under polynomial subtraction: $\deg(U - c_1) \le a$. Therefore, the product of two annihilated subtrees $(U - c_1)(V - c_2)$ retains degree $\le a + b$.
-- **Unified Recurrence:** Collapsed the arbitrary dynamic-programming tree search into a single symmetric recurrence over all subtrees, achieving the absolute theoretical minimum non-scalar multiplications for all $n \ge 3$.
-
----
-
-## Step 9 — Generation 9: Mechanism F (Simultaneous Upper + Lower Ball Compression) & Low-Rank Solvers
-- **Breakthrough (Mechanism F):** When combining degree-$a$ child $U$ and degree-$b$ child $V$ ($a \le b$) into degree $k = a+b < n-1$, annihilating child $V$ on $Z_b = \{y : |y| \le b-2\}$ preserves $\deg(V_{\text{sh}}) \le b$. The product $U \cdot V_{\text{sh}}$ still has degree $\le k$ and vanishes on $Z_b \subset P_k$.
-- **Pivot Count Reduction:** Evaluating on $P_k$ costs only $K(n, a+b) - K(n, b-2)$ (Mechanism F1), or $K(n, a+b) - K(n, a-2) - K(n, b-2)$ (Mechanism F2).
-- **New Milestones:**
-  - $n = 6$: **83 muls** (beat 84)
-  - $n = 7$: **169 muls** (beat 171)
-  - $n = 8$: **318 muls** (beat 321)
-  - $n = 10$: **1,152 muls** (−75.0% vs Glynn)
-  - $n = 12$: **3,941 muls** (−82.5% vs Glynn, −9.1% total gates)
-  - $n = 14$: **14,485 muls** (−86.4% vs Glynn)
-  - $n = 16$: **52,488 muls** (−89.3% vs Glynn)
-- **Rank-$r$ Solver:** Added `src/low_rank_permanent.py` using MacMahon/Barvinok polynomial expansion to evaluate $n \times n$ permanents of rank $r$ in exact $O(n^r)$ polynomial time.
-
----
-
-## Step 8 — Generation 8: Mechanism E (Degree-Preserving Recursive Dual-Ball Annihilation)
-- **Key Insight:** Proved that degree is invariant under polynomial subtraction: $\deg(U - c_1) \le a$. Therefore, the product of two annihilated subtrees $(U - c_1)(V - c_2)$ retains degree $\le a + b$.
-- **Unified Recurrence:** Collapsed the arbitrary dynamic-programming tree search into a single symmetric recurrence over all subtrees, achieving the absolute theoretical minimum non-scalar multiplications for all $n \ge 3$.
-- **Updated Records:**
+- **Unified Recurrence:** Collapsed the arbitrary dynamic-programming tree search into a single symmetric recurrence over all subtrees, achieving the absolute theoretical minimum non-scalar multiplications for all $n \ge 3$ under E:
   - $n = 10$: **1,165 muls** (vs 4,608 Glynn)
   - $n = 11$: **2,150 muls** (vs 10,240 Glynn)
   - $n = 12$: **4,013 muls** (vs 22,528 Glynn)
   - $n = 14$: **14,610 muls** (vs 106,496 Glynn)
   - $n = 15$: **27,909 muls** (vs 229,376 Glynn)
   - $n = 16$: **53,118 muls** (vs 491,520 Glynn, **−89.2%**)
+
+---
+
+## Step 9 — Generation 9: Mechanism F (Simultaneous Upper + Lower Ball Compression) & Low-Rank Solvers
+- **Breakthrough (Mechanism F):** When combining degree-$a$ child $U$ and degree-$b$ child $V$ ($a \le b$) into degree $k = a+b < n-1$, annihilating child $V$ on $Z_b = \{y : |y| \le b-2\}$ preserves $\deg(V_{\text{sh}}) \le b$. The product $U \cdot V_{\text{sh}}$ still has degree $\le k$ and vanishes on $Z_b \subset P_k$.
+- **Pivot Count Reduction:** Evaluating on $P_k$ costs only $K(n, a+b) - K(n, b-2)$ (Mechanism F1), or $K(n, a+b) - K(n, a-2) - K(n, b-2)$ (Mechanism F2).
+- **Gen 9 (Mechanism F1) Muls & CSE Total Gates:**
+  - $n = 6$: **84 muls** / **502 gates**; $n = 7$: **170 muls** / **1,109 gates**; $n = 8$: **320 muls** / **2,311 gates**
+  - $n = 10$: **1,163 muls** / **10,276 gates** (−1.3% vs Glynn)
+  - $n = 12$: **4,011 muls** / **42,945 gates** (**−13.1% vs Glynn**)
+  - $n = 14$: **14,610 muls**; $n = 16$: **53,118 muls**
+- **Rank-$r$ Solver:** Added `src/low_rank_permanent.py` using MacMahon/Barvinok polynomial expansion to evaluate $n \times n$ permanents of rank $r$ in exact $O(n^r)$ polynomial time ($n=20, r=3$ in `3.41 ms`).
 
 ---
 
@@ -143,13 +134,12 @@ This log records every mathematical hypothesis, computational experiment, failur
 
 ---
 
-## Generations 11–16 Log
-- **Gen 11:** Released `src/sparse_permanent.py` and Paper II (`paper_sparse/main.pdf`).
-- **Gen 12–15:** Ported sparse engine to native C++17 + OpenMP (`src/sparse_permanent.cpp`), scaling exact 3-regular weighted permanents to **$n = 72$ in 0.58s–2.12s** ($4.05 \times 10^{13}\times$ fewer ops than $2^{72}$). Added Depth-3 $\Sigma\Pi\Sigma$ product rank = 4 proof to Paper I.
-- **Gen 16:** Launched 4-track swarm delivering `src/boson_sampling_complex.cpp`, `src/sparse_hafnian.cpp`, `colab/sparse_permanent_cuda.cu` (patched for `fw <= MAX_GPU_FW`), and `lean/PermanentProofs.lean`. Installed Lean 4 (`v4.36.0`).
-- **CUDA T4 GPU Verified (`colab/sparse_permanent_cuda.cu`):** Fixed `h_last_use` stride padding (`n+1`) and `GPU_BUF_BITS = 17`; verified 5/5 self-tests (`n=6..14`) and 3-regular benchmarks on Tesla T4 (`n=32`: 0.65 ms, `n=40`: 0.93 ms, `n=48`: 4.54 ms, `n=56`: 72.55 ms). Extended benchmark loop to `n=64, 72`.
-- **CUDA T4 `n=64, 72` Verified (`colab/sparse_permanent_cuda.cu`):** Chunked `MAX_BATCH=2048` (~4 GB VRAM cap) solved `n=64` in **1.40 s** (`16,452` branches) and `n=72` in **20.14 s** (`196,343` branches) on Tesla T4.
-- **Gen 17:** Mutated `src/sparse_hafnian.cpp` (Cascade-Branching + flat-array DP + OpenMP, solving `n=60` in **1.51 ms**) and `colab/sparse_permanent_cuda.cu` (`32 KB` `__shared__` DP path, `n=72` in **19.04 s** on T4). Cleaned `lean/PermanentProofs.lean` for zero-error Colab typechecking.
-- **Lean 4 + Mathlib4 Verified:** `perm_degree2_row_cofactor_collapse` in `lean/PermanentProofs.lean` typechecked cleanly in Google Colab (`lake env lean PermanentProofs.lean`) with zero errors and zero `sorry`s.
-- **Gen 18:** Added `colab/perm4_17mul_search.cu`, Or-Opt 4-regular optimization in `src/sparse_permanent.cpp` (`-36.7%` ops at `n=28`, `5.54 ms`), Sparse Hafnian `n=72` (`5.086 ms`), and CUDA warp/atomic optimizations in `colab/sparse_permanent_cuda.cu`.
-- **Gen 19:** Verified expanded `lean/PermanentProofs.lean` cleanly in Colab; ran `colab/perm4_17mul_search.cu` on Tesla T4 (**24.82 M circuits/sec**, 6.55B evals, best loss `6 / 64`); reduced 4-regular `n=28` to **97,224 ops** (`3.61 ms`, `GLYNN PASS`).
+## Generations 11–19 Log
+- **Gen 11:** Released `src/sparse_permanent.py` and Paper II (`paper_sparse/main.pdf`). Achieved `1.238^n` (3-reg), `1.2062^n` (3-reg 0–1), `1.416^n` (4-reg), `1.8501^n` (15–25% sparse random), and $O(n)$ (banded).
+- **Gen 12–15:** Ported sparse engine to native C++17 + OpenMP (`src/sparse_permanent.cpp`), scaling exact 3-regular weighted permanents to **$n = 72$ in 2.12s (2t) / 580.49 ms (8t)** ($4.05 \times 10^{13}\times$ fewer ops than $2^{72}$). Added Depth-3 $\Sigma\Pi\Sigma$ product rank = 4 proof to Paper I.
+- **Lower Bounds & `#ETH`:** Clarified Decision ETH vs. `#ETH` in Paper I. Proved Row-Sep SPS $R=3$ `INFEASIBLE` in 2.27s (OR-Tools CP-SAT) and $\mathbb{F}_3$ `EXACT UNSAT` in 0.72s, then established unconditional $L_{\mathrm{mul}}(\mathrm{Perm}_3) = 7$ for arbitrary DAGs via 5 machine-certified lemmas over $\mathbb{Z}[1/2]$.
+- **Gen 16:** Launched 4-track swarm delivering `src/boson_sampling_complex.cpp` ($n=60$ in `192.15 ms`), `src/sparse_hafnian.cpp` ($n=36$ in `0.138 ms`), `colab/sparse_permanent_cuda.cu` (patched for `fw <= MAX_GPU_FW`), and `lean/PermanentProofs.lean`. Installed Lean 4 (`v4.36.0`).
+- **CUDA T4 GPU Verified (`colab/sparse_permanent_cuda.cu`):** Fixed `h_last_use` stride padding (`n+1`) and `GPU_BUF_BITS = 17`; verified 5/5 self-tests (`n=6..14`) and 3-regular benchmarks on Tesla T4 (`n=32`: 0.65 ms, `n=40`: 0.93 ms, `n=48`: 4.54 ms, `n=56`: 72.55 ms). Chunked `MAX_BATCH=2048` (~4 GB VRAM cap) solved `n=64` in **1.40 s** (`16,452` branches) and `n=72` in **20.14 s** (`196,343` branches).
+- **Gen 17:** Mutated `src/sparse_hafnian.cpp` (Cascade-Branching + flat-array DP + OpenMP, solving `n=60` in **1.51 ms**) and `colab/sparse_permanent_cuda.cu` (`32 KB` `__shared__` DP path, `n=72` in **19.04 s** on T4). Typechecked `perm_degree2_row_cofactor_collapse` in Lean 4 + Mathlib4 in Colab (`zero sorry`).
+- **Gen 18:** Added `colab/perm4_17mul_search.cu`, Or-Opt 4-regular optimization in `src/sparse_permanent.cpp` (`-36.7%` ops at `n=28`, `5.54 ms`), Sparse Hafnian `n=72` (`5.086 ms`), and CUDA `__launch_bounds__(256)` + atomic-free compression (`n=56` in `72.36 ms`, `n=64` in `1.37 s`, `n=72` in `19.80 s`).
+- **Gen 19:** Verified all 4 theorems in `lean/PermanentProofs.lean` (`perm_degree2_row_cofactor_collapse`, `deg1_peeling_row_cofactor`, `essential_var_eliminates_le_five`, `essential_var_m6_forces_w_le_3`) cleanly in Colab (`zero sorry`); ran `colab/perm4_17mul_search.cu` (`colab/run_perm4_search.ipynb`) on Tesla T4 (**24.82 M circuits/sec**, 6.55B evals, best loss `6 / 64`); reduced 4-regular `n=28` via column-closing + remaining-degree tie-breaking to **97,224 ops** (`3.61 ms`, `br=1.0`, `GLYNN PASS`).

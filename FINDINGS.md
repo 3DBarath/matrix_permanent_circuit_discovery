@@ -134,45 +134,47 @@ Generation 10 implements Mechanism F2 via an exact Schur-complement butterfly ar
   2. Fuses high-weight ball annihilation $Z_a = \{|y| \ge m - (a-2)\}$ into child $U$.
   3. Drops $r = K(n, a-2)$ weight-$k$ pivot masks $D \subset P_k \setminus Z_b$, evaluating on **only $K(n, k) - K(n, a-2) - K(n, b-2)$ points**.
   4. Solves the small $r \times r$ incidence system $M \lambda = -W^{(0)}[Z_a]$ using Schur complements. For $a = 2$, $r = 1$ and $M = [[1]]$ (requiring 0 scalar multiplications).
-* **Exact Hypercube Multiplicative Floor:**
-  - $n = 6$: **83 muls** (vs. 160 Glynn, **−48.1%**)
-  - $n = 7$: **169 muls** (vs. 384 Glynn, **−56.0%**)
-  - $n = 8$: **318 muls** (vs. 896 Glynn, **−64.5%**)
-  - $n = 10$: **1,152 muls** (vs. 4,608 Glynn, **−75.0%**)
-  - $n = 12$: **3,941 muls** (vs. 22,528 Glynn, **−82.5%**)
+* **Exact Hypercube Multiplicative Floor (Gen 10) & CSE Gate Counts (Gen 9 vs. Gen 10):**
+  - $n = 6$: **83 muls** (vs. 160 Glynn, **−48.1%**) | Gates: 502 (Gen 9) / 529 (Gen 10)
+  - $n = 7$: **169 muls** (vs. 384 Glynn, **−56.0%**) | Gates: 1,109 (Gen 9) / 1,198 (Gen 10)
+  - $n = 8$: **318 muls** (vs. 896 Glynn, **−64.5%**) | Gates: 2,311 (Gen 9) / 2,466 (Gen 10)
+  - $n = 10$: **1,152 muls** (vs. 4,608 Glynn, **−75.0%**) | Gates: **10,276** (Gen 9, **−1.3%** vs. 10,410 Glynn) / 12,125 (Gen 10)
+  - $n = 12$: **3,941 muls** (vs. 22,528 Glynn, **−82.5%**) | Gates: **42,945** (Gen 9, **−13.1%** vs. 49,404 Glynn) / 57,188 (Gen 10)
   - $n = 14$: **14,485 muls** (vs. 106,496 Glynn, **−86.4%**)
-  - $n = 16$: **52,488 muls** (vs. 491,520 Glynn, **−89.3%**)
+  - $n = 16$: **52,488 muls** (vs. 491,520 Glynn, **−89.3%**, $1.602 \cdot 2^{15}$)
+* **C++17 Polynomial-Ring SIMD Wall-Clock Speedup (`src/bench_poly8_mod61.cpp`, $\mathbb{F}_{2^{61}-1}[x]/(x^8-2)$):**
+  - $n=4$: `1.62 µs` vs. `1.77 µs` (**1.09×**); $n=6$: `7.94 µs` vs. `10.90 µs` (**1.37×**); $n=8$: `32.10 µs` vs. `62.70 µs` (**1.95×**); $n=10$: `125.96 µs` vs. `302.79 µs` (**2.40×**); $n=11$: `243.51 µs` vs. `695.89 µs` (**2.86×**); $n=12$: `497.21 µs` vs. `1,403.08 µs` (**2.82×**). Bit-exact 8/8 across all sizes.
 
 ---
 
-## 10. Open Directions
-- **Sub-18 at $n = 4$:** Determining whether a non-Glynn multilinear or depth-3 product-rank-6 circuit exists to push below 18 non-scalar multiplications remains an open target for Mode B search.
+## 10. Lower Bounds & Complexity Horizon
+- **Unconditional $L_{\mathrm{mul}}(\mathrm{Perm}_3) = 7$ (General DAGs, $\mathrm{char}(\mathbb{F}) \neq 2$):** Five machine-certified lemmas over $\mathbb{Z}[1/2]$ (Strassen homogenization, isotropic subspace bound, integer SNF of $\nabla\mathrm{Perm}_3$, Jacobian ideal Gröbner cofactors certifying $\dim \mathrm{Sing}(V(\mathrm{Perm}_3)) \le 2$, and 5-plane classification) rule out all 6-mul arithmetic DAGs regardless of feedback depth.
+- **Decision ETH vs. `#ETH`:** Refutations of decision ETH for 3-SAT ($\mathbf{NP}$) do not affect $\mathrm{Perm}$ ($\#\mathbf{P}$-complete; $\mathbf{P}^{\#\mathbf{P}} \supseteq \mathbf{PH}$ by Toda's theorem). Any linear hypercube polarization circuit still requires $\ge 2^{n-1}$ states to annihilate spurious lower-degree monomials.
+- **Sub-18 at $n = 4$:** Exhaustive LM, bitsliced $\mathbb{F}_3/\mathbb{F}_5$, and Tesla T4 CUDA searches (`6.55B` evals, best loss `6/64`) found no 17-mul circuit, reinforcing 18 as tight.
 
 
 ---
 
-## Generations 11–16: Sub-$2^n$ Sparse Permanents, Quantum Boson Sampling, and Formal Proofs
+## Generations 11–19: Sub-$2^n$ Sparse Permanents, Quantum Boson Sampling, and Formal Proofs
 
-- **Gen 11 (`src/sparse_permanent.py`):** Iterated degree-1 peeling, degree-2 series contractions, connected-component factorization, and Min-Frontier DP. Achieved **$1.238^n$** on 3-regular graphs ($n=28$ in 3.60 ms).
-- **Gen 12–15 (`src/sparse_permanent.cpp`):** Native C++17 + OpenMP flat-array engine (`fw <= 15`). Solved **$n=48$** (76 ms), **$n=60$** (75 ms on 8 threads), **$n=64$** (9.78s), and **$n=72$** in **2.12s** (2 threads) / **0.58s** (8 threads) — **$4.05 \times 10^{13}\times$ fewer ops** than $2^{72}$.
+- **Gen 11 (`src/sparse_permanent.py`):** Iterated degree-1 peeling, degree-2 series contractions, connected-component factorization, and Min-Frontier DP. Achieved **$1.238^n$** on 3-regular weighted graphs ($n=28$ in 3.60 ms), **$1.2062^n$** on 3-regular 0–1 ($n=40$ in 7,106 ops), **$1.416^n$** on 4-regular ($n=24$ in 19.71 ms), **$1.8501^n$** on 15–25% sparse random matrices (vs. Ryser $2.3235^n$), and **$O(n)$** on banded matrices. With 128-bit mixed-vertex DP + Dulmage–Mendelsohn + Or-Opt SA, 3-regular reaches **$1.188^n$** ($n=60$) and 4-regular drops 46% to **$1.314^n$**.
+- **Gen 12–15 (`src/sparse_permanent.cpp`):** Native C++17 + OpenMP flat-array engine (`fw <= 15`). Solved **$n=48$** (76 ms), **$n=60$** (75 ms on 8 threads), **$n=64$** (9.78s $\to$ 192.53 ms on 8t), and **$n=72$** in **2.12s** (2 threads) / **580.49 ms** (8 threads) — **$4.05 \times 10^{13}\times$ fewer ops** than $2^{72}$.
 - **Gen 15 Algebraic Closure:** Proved via substitution method that Depth-3 $\Sigma\Pi\Sigma$ product rank of $\mathrm{Perm}_3$ is strictly **4** over $\mathrm{char}(\mathbb{F}) \neq 2$.
 - **Gen 16 Extensions:**
   - `src/boson_sampling_complex.cpp`: Complex unitary permanents ($n=60$ in 192.15 ms, `0.000e+00` error vs. Glynn).
   - `src/sparse_hafnian.cpp`: Exact sub-$2^n$ Hafnian solver ($n=36$ in 0.138 ms, `max_rel_err <= 3.2e-16`).
   - `colab/sparse_permanent_cuda.cu`: Google Colab CUDA kernel with `fw <= MAX_GPU_FW` guard.
   - `lean/PermanentProofs.lean`: Lean 4 / Mathlib4 formalizations.
-- **CUDA Tesla T4 Verified (`colab/sparse_permanent_cuda.cu`):** `n=32` in 0.65 ms, `n=40` in 0.93 ms, `n=48` in 4.54 ms, `n=56` in 72.55 ms (5/5 Glynn self-tests PASS). Extended to `n=64, 72`.
-- **CUDA Tesla T4 `n=64, 72` Verified (`colab/sparse_permanent_cuda.cu`):** `n=64` in **1.40 s** (`16,452` branches), `n=72` in **20.14 s** (`196,343` branches) with zero VRAM overflow.
+- **CUDA Tesla T4 Verified (`colab/sparse_permanent_cuda.cu`):** `n=32` in 0.65 ms, `n=40` in 0.93 ms, `n=48` in 4.54 ms, `n=56` in 72.55 ms (5/5 Glynn self-tests PASS). Extended to `n=64` (**1.40 s**, `16,452` branches) and `n=72` (**20.14 s**, `196,343` branches) with zero VRAM overflow.
 - **Gen 17 (`src/sparse_hafnian.cpp` & `colab/sparse_permanent_cuda.cu`):**
   - Sparse Hafnian with Cascade-Branching + OpenMP: `n=60` in **1.510 ms** (`max_frontier=11`, `max_rel_err <= 3.36e-16` at `n=4..10`).
   - CUDA Shared-Memory DP (`32 KB` on-chip for `fw <= 11`): `n=72` in **19.04 s** on Tesla T4.
-- **Lean 4 + Mathlib4 Verified (`lean/PermanentProofs.lean`):** `perm_degree2_row_cofactor_collapse` (over arbitrary `[CommRing R]` using `Matrix.permanent` and `Matrix.submatrix`) typechecked cleanly in Google Colab with zero `sorry`s.
 - **Gen 18 (Or-Opt 4-Reg, Hafnian $n=72$, Perm4 CUDA, CUDA Warp Opt):**
   - 4-Regular Or-Opt (`src/sparse_permanent.cpp --4reg`, all `GLYNN PASS`): `n=16` (`1552 -> 1092`, `-29.6%`), `n=20` (`8701.7 -> 6106.3`, `-29.8%`), `n=24` (`27178.7 -> 20180.0`, `-25.7%`), `n=28` (`210275.0 -> 133135.0`, `-36.7%`, `5.54 ms`).
   - Sparse Hafnian (`src/sparse_hafnian.cpp`): 3-regular `n=60` (`0.953 ms`), `n=64` (`2.447 ms`), `n=68` (`3.501 ms`), **`n=72` (`5.086 ms`)**; 4-regular `n=24` (`0.117 ms`).
   - `colab/perm4_17mul_search.cu`: 64-lane bit-sliced $\mathbb{F}_3/\mathbb{F}_5$ CUDA search for 17-mul $\mathrm{Perm}_4$.
-  - `colab/sparse_permanent_cuda.cu`: `__launch_bounds__(256)` + atomic-free bijective dead-column compression.
+  - `colab/sparse_permanent_cuda.cu`: `__launch_bounds__(256)` + atomic-free bijective dead-column compression (`n=56` in **72.36 ms**, `n=64` in **1.37 s**, `n=72` in **19.80 s** on T4).
 - **Gen 19 (Lean 4 Verified, Perm_4 17-Mul T4 Search, 4-Reg 97k ops):**
   - **Lean 4 + Mathlib4 (`lean/PermanentProofs.lean`):** `perm_degree2_row_cofactor_collapse`, `deg1_peeling_row_cofactor`, `essential_var_eliminates_le_five`, and `essential_var_m6_forces_w_le_3` all typechecked cleanly in Colab (`zero sorry`).
   - **Perm_4 17-Mul CUDA Search (`colab/perm4_17mul_search.cu` on Tesla T4):** Evaluated **6.55 billion circuits** (`256 x 256 x 100,000`) in `263.99 s` (**24.82 M circuits/sec**), **Best loss: 6 / 64** — no 17-mul circuit found, reinforcing 18 as tight.
-  - **4-Regular Sparse (`src/sparse_permanent.cpp --4reg`):** `n=28` reduced to **97,224 ops** (`3.61 ms`, `br=1.0`, `GLYNN PASS`).
+  - **4-Regular Sparse (`src/sparse_permanent.cpp --4reg`):** Column-closing + remaining-degree tie-breaking reduced `n=28` from `133,135` to **97,224 ops** (`3.61 ms`, `br=1.0`, $>53\%$ total reduction vs. `210,275`, `GLYNN PASS`).
