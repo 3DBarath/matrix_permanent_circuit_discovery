@@ -150,7 +150,8 @@ Generation 10 implements Mechanism F2 via an exact Schur-complement butterfly ar
 ## 10. Lower Bounds & Complexity Horizon
 - **Unconditional $L_{\mathrm{mul}}(\mathrm{Perm}_3) = 7$ (General DAGs, $\mathrm{char}(\mathbb{F}) \neq 2$):** Five machine-certified lemmas over $\mathbb{Z}[1/2]$ (Strassen homogenization, isotropic subspace bound, integer SNF of $\nabla\mathrm{Perm}_3$, Jacobian ideal Gröbner cofactors certifying $\dim \mathrm{Sing}(V(\mathrm{Perm}_3)) \le 2$, and 5-plane classification) rule out all 6-mul arithmetic DAGs regardless of feedback depth.
 - **Hypercube Floor & $\#\mathbf{P}$-Completeness:** Eliminating the polynomial factor $n$ from $\Theta(n \cdot 2^n)$ to $O(2^n)$ leaves the exponential base $2$ intact; any linear hypercube polarization circuit requires $\ge 2^{n-1}$ states to annihilate spurious lower-degree monomials.
-- **Sub-18 at $n = 4$:** Exhaustive LM, bitsliced $\mathbb{F}_3/\mathbb{F}_5$, and Tesla T4 CUDA searches (`6.55B` evals, best loss `6/64`) found no 17-mul circuit, reinforcing 18 as tight.
+- **Sub-18 at $n = 4$:** Exhaustive LM, bitsliced $\mathbb{F}_3/\mathbb{F}_5$, and Tesla T4 CUDA searches (`6.55B` evals, best loss `6/64`) found no 17-mul circuit, reinforcing 18 as tight. General-DAG essential-variable bound gives $2M - |W| \ge 16$ (ruling out $M \le 8$ unconditionally), and Gröbner basis of the $3 \times 3$ minors of $T_2$'s 4 slices proves every nonzero slice combination has rank $\ge 3$ ($\mathrm{rank}(T_2) \ge 6$ unconditionally).
+- **Gen 21–22 Fused Schur-F2 (`archive/perm_autoresearch_v2_complete.zip`):** `gen21_fused_schur_cse.py` and `gen22_fused_schur_cse.py` combine Gen 10's F2 floor (`1,152` muls at $n=10$, `3,941` at $n=12$) with Möbius-domain Schur patching and Hasse/CSE, reducing $n=10$ gates vs. Gen 10 (`11,838` / `11,955` vs. `12,125`), while Gen 9 remains the overall total-gate champion (`10,276` at $n=10$, `42,945` at $n=12$).
 
 
 ---
