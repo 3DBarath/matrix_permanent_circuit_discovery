@@ -1,21 +1,20 @@
-# Breaking Glynn's Barrier: An O(2^n) Multiplicative Circuit for the Matrix Permanent via Dual Degree-Parity Compression
+# Breaking Glynn's Barrier: Exact $O(2^n)$-Multiplication Circuits for the Matrix Permanent via Degree-Preserving Dual-Ball Annihilation and Möbius–Zeta Butterflies
 
 **Author:** Barath B (Independent Researcher)  
-**Target Submission:** arXiv (math.CO / cs.CC) / STOC / FOCS / CCC  
-**Source File:** [`paper/main.tex`](./main.tex)
+**Target Submission:** arXiv (`cs.CC` / `math.CO`) / STOC / FOCS / CCC  
+**Source File:** [`paper/main.tex`](./main.tex)  
+**Compiled PDF:** [`paper/main.pdf`](./main.pdf)
 
 ---
 
 ## Abstract
 
-Computing the permanent of an $n \times n$ matrix is a foundational $\#\mathbf{P}$-complete problem. Since Glynn's 2010 formula, the state-of-the-art non-scalar multiplicative complexity over fields with $\mathrm{char}(\mathbb{F}) \neq 2$ has stood at $(n-1) \cdot 2^{n-1} = \Theta(n \cdot 2^n)$ multiplications. In this work, we present an exact, branch-free arithmetic Straight-Line Program (SLP) that strictly breaks Glynn's barrier for all $n \ge 3$, asymptotically reducing the non-scalar multiplicative complexity to $O(2^n)$.
+We present an algebraic complexity framework spanning ten generations that strictly breaks the 15-year-old Glynn barrier for the exact $n \times n$ matrix permanent over any field $\mathbb{F}$ with $\mathrm{char}(\mathbb{F}) \neq 2$. We reduce the non-scalar (wire $\times$ wire) multiplication complexity from Glynn's $\Theta(n \cdot 2^n)$ baseline to $O(2^n)$, while bounding total arithmetic gate complexity to $O(n \cdot 2^n)$ and beating Glynn + Gray code on **both** non-scalar multiplications and total arithmetic operations for all $n \ge 10$.
 
-Our construction relies on an algebraic framework termed **Dual Degree-Parity Compression**, which unites three exact reductions on the Boolean hypercube $\{\pm 1\}^{n-1}$:
-1. **Prefix Degree Interpolation:** Confines degree-$m$ prefixes to a $K(n, m) = \sum_{w=0}^m \binom{n-1}{w}$ dimensional Walsh-Hadamard subspace, skipping non-scalar multiplications via rational interpolation.
-2. **Suffix Degree-Parity Annihilation:** Shifts intermediate state by low-degree polynomials orthogonal to the parity character, identically zeroing pivot coordinates.
-3. **Parseval Collapse:** Evaluates the boundary layer in only $n$ multiplications.
-
-For $n = 4$, by solving the bilinear lift tensor via numerical Alternating Least Squares (ALS) and lifting the factors over $\mathbb{Q}$, we uncover a fused rank-1 perturbation of a sign-diagonal matrix that evaluates the permanent in exactly **18 non-scalar multiplications** ($-25.0\%$ relative to Glynn's 24) and **84 total arithmetic gates**. We verify exact polynomial identity over $\mathbb{Q}[A_{00},\dots,A_{33}]$ (residual zero) and validate dimensions $n = 3, \dots, 7$ across two 61-bit primes with zero errors. By $n = 12$, the dynamic-programming evaluation tree requires only $4{,}081$ non-scalar multiplications ($< 2^n = 4{,}096$, an $81.9\%$ reduction over Glynn's $22{,}528$).
+The construction is founded on six exact algebraic mechanisms (Mechanisms A–F2) on the Boolean hypercube $\{+1,-1\}^{n-1} \cong \{0,1\}^{n-1}$, replacing precomputed dense rational interpolation matrices with matrix-free Möbius–Zeta butterflies, Hasse-diagram 1-add-per-mask row evaluators, signed-wire tracking (1 scalar multiplication across the entire circuit), and SSA Common Subexpression Elimination (CSE):
+- **Generation 9 (Mechanism F1):** 4,011 non-scalar multiplications ($-82.2\%$) and 42,945 total gates ($-13.1\%$ vs. Glynn + Gray's 49,404) at $n = 12$.
+- **Generation 10 (Mechanism F2, Schur-Complement Butterfly):** Reaches the exact information-theoretic hypercube floor of 3,941 multiplications ($-82.5\%$) at $n = 12$ and 52,488 ($-89.3\%$, $1.602 \cdot 2^{15}$) at $n = 16$.
+- **Hardware & Lower Bounds:** Compiled C++17 kernels over $\mathbb{F}_{2^{61}-1}[x]/(x^8 - 2)$ achieve up to $2.86\times$ wall-clock throughput speedups over Glynn + Gray code. We also establish the row-layered rank lower bound at $n=4$, prove Depth-3 $\Sigma\Pi\Sigma$ product rank $4$ and unconditional general-DAG $L_{\mathrm{mul}}(\mathrm{Perm}_3) = 7$, and provide an $O(n^r)$ solver for rank-$r$ matrices.
 
 ---
 
@@ -24,7 +23,7 @@ For $n = 4$, by solving the bilinear lift tensor via numerical Alternating Least
 1. **Overleaf:**
    - Create a new blank project.
    - Upload `main.tex`.
-   - Compile using standard `pdfLaTeX` or `XeLaTeX`.
+   - Compile using `pdfLaTeX`, `XeLaTeX`, or `tectonic`.
 2. **arXiv Submission:**
    - Upload `main.tex` directly to arXiv under subject categories:
      - Primary: **cs.CC** (Computational Complexity)
