@@ -10,6 +10,7 @@
 \usepackage{fancyhdr}
 \usepackage{hyperref}
 \usepackage{enumitem}
+\usepackage[bottom]{footmisc}
 
 \definecolor{primary}{RGB}{24,78,119}
 \definecolor{accent}{RGB}{181,64,47}
@@ -277,6 +278,53 @@ A central theoretical question is whether the hypercube polarization paradigm co
 \section*{Reproducibility Package}
 All source code, symbolic certificates, C++17 kernels, and verification suites are publicly accessible and reproducible at: \\
 \url{https://github.com/3DBarath/matrix_permanent_circuit_discovery}.
+
+\appendix
+
+\section{Unconditional Lower Bound $L_{\mathrm{mul}}(\Perm_3) = 7$ over $\mathrm{char}(\F) \neq 2$}
+\label{app:perm3_lower}
+
+We record the self-contained algebraic proof of $L_{\mathrm{mul}}(\Perm_3) = 7$ over every field $\F$ with $\mathrm{char}(\F) \neq 2$ (Section~5.3), verified over $\mathbb{Z}[1/2]$ in \texttt{archive/perm\_\-autoresearch\_\-all\_\-sources.zip}.
+
+\begin{lemma}[Zero-Constant Reduction and Strassen Homogenization]
+Any $M$-multiplication arithmetic DAG $Y = c_0 + L_0(x) + \sum_{m=1}^M w_m A_m B_m$ computing $\Perm_3(A)$ in $9$ variables $x = (A_{00},\dots,A_{22})$ can be transformed into an $M$-multiplication DAG with $A_m(0) = B_m(0) = 0$ for all $m$, $c_0 = L_0 = 0$, and degree-2/3 components satisfying:
+\begin{align}
+  Y^{(2)} &= \sum_{m \in W} w_m L_m R_m = 0, \label{eq:app_eq1} \\
+  Y^{(3)} &= \sum_{j=1}^{M-1} L_j R_j M_j = \Perm_3(A), \qquad M_j = \sum_{\substack{m \in W \\ m > j}} w_m (\beta_{mj} L_m + \alpha_{mj} R_m) \in V_W, \label{eq:app_eq2}
+\end{align}
+where $W = \{m : w_m \neq 0\}$, $L_m = A_m^{(1)}$, $R_m = B_m^{(1)}$, $V_W = \mathrm{span}_{\F}(L_m, R_m : m \in W)$, and $g_m^{(3)}$ depends only on degree-1 and degree-2 feedback (never on degree-$\ge 3$ feedback).
+\end{lemma}
+\begin{proof}
+Inductively set $\tilde{A}_m = A_m - A_m(0)$, $\tilde{B}_m = B_m - B_m(0)$, and $\tilde{g}_m = \tilde{A}_m \tilde{B}_m$. Since $g_m \in \mathrm{span}_{\F}(1, x, \tilde{g}_1,\dots,\tilde{g}_m)$, substituting into downstream affine forms eliminates all constants. Because $\tilde{g}_m$ has lowest degree $\ge 2$, comparing degrees $0, 1, 2, 3$ in $Y = \Perm_3$ yields $c_0 = L_0 = 0$, \eqref{eq:app_eq1}, and \eqref{eq:app_eq2}.
+\end{proof}
+
+\begin{lemma}[Isotropic Subspace Bound]
+Over any field $\F$ with $\mathrm{char}(\F) \neq 2$, \eqref{eq:app_eq1} forces $\dim V_W \le |W|$.
+\end{lemma}
+\begin{proof}
+Let $r = |W|$ and let $M \in \F^{2r \times 9}$ have rows $\{L_m, R_m : m \in W\}$. Condition \eqref{eq:app_eq1} states $M^T J M = 0$ for the nondegenerate symmetric bilinear form $J = \begin{pmatrix} 0 & D \\ D & 0 \end{pmatrix}$ on $\F^{2r}$, where $D = \mathrm{diag}(w_m : m \in W)$ is invertible ($\mathrm{char}(\F) \neq 2$). Thus $\mathrm{colspace}(M)$ (equivalently $V_W$ as a subspace of $\F^{2r}/{\ker M^T}$) is totally isotropic for $J$, which bounds its dimension by half the ambient dimension: $\dim V_W \le \frac{1}{2}(2r) = |W|$.
+\end{proof}
+
+\begin{lemma}[Essential-Variable Inequality and Elimination of $M \le 5$]
+For any $M$-multiplication DAG computing $\Perm_3$, $9 \le 2M - |W|$. In particular, no DAG with $M \le 5$ exists, and for $M = 6$ only $|W| \le 3$ can occur.
+\end{lemma}
+\begin{proof}
+Since $\Perm_3$ depends essentially on all $9$ variables (exact integer SNF of $\nabla \Perm_3$ has rank $9$ and invariant factors $[1]$), the $2(M - |W|)$ linear forms $\{L_j, R_j : j \notin W\}$ together with $V_W$ must span all $9$ variables: $9 \le \dim V_W + 2(M - |W|) \le |W| + 2(M - |W|) = 2M - |W|$. For $M \le 5$, $|W| \ge 1$ gives $2M - |W| \le 9$ with equality only at $(M,|W|) = (5,1)$; however, $|W| = 1$ forces $\dim V_W \le 1$, so $Y^{(3)}$ would be divisible by $M_j \in V_W$, contradicting irreducibility of $\Perm_3$. For $M = 6$, $9 \le 12 - |W|$ forces $|W| \le 3$.
+\end{proof}
+
+\begin{lemma}[Singular Locus Obstruction and Elimination of $|W| \le 2$]
+Over $\mathrm{char}(\F) \neq 2$, $\dim \mathrm{Sing}(V(\Perm_3)) \le 2$ (certified by explicit $\mathbb{Z}[1/2]$ cofactors with denominators $\le 2$ for all $24$ grevlex Gr\"obner basis elements of the Jacobian ideal). Consequently, $\dim V_W \ge 3$ and $|W| \ge 3$ for $M = 6$.
+\end{lemma}
+\begin{proof}
+Suppose $|W| \le 2$ (with $6 \in W$ WLOG, so $\dim V_W \le |W| \le 2$). Consider the linear subspace $H \subset \F^9$ defined by vanishing of a basis of $V_W$ (at most $\dim V_W$ equations) together with $L_j = 0$ for all $j \in \{1,\dots,5\} \setminus W$ ($5 - |W|$ equations). On $H$, every term $L_j R_j M_j$ in \eqref{eq:app_eq2} has at least two vanishing linear factors ($M_j \in V_W$ and either $L_j = 0$ or $L_j, R_j \in V_W$), so $\Perm_3$ vanishes to order $\ge 2$ on $H$, i.e., $H \subseteq \mathrm{Sing}(V(\Perm_3))$. However, $\mathrm{codim}(H) \le \dim V_W + (5 - |W|) \le |W| + (5 - |W|) = 5$, giving $\dim H \ge 9 - 5 = 4 > 2 \ge \dim \mathrm{Sing}(V(\Perm_3))$, a contradiction. Thus $|W| \ge 3$ and $\dim V_W \ge 3$.
+\end{proof}
+
+\begin{lemma}[5-Plane Classification and Elimination of $(M, |W|) = (6, 3)$]
+Over $\mathrm{char}(\F) \neq 2$, the only $3$-dimensional subspaces $V \subset (\F^9)^*$ with $\Perm_3 \in \langle V \rangle$ are the $6$ row and column spaces. Furthermore, $\mathrm{ChowRank}_{\F}(\Perm_3) \ge 4$. Hence $(M, |W|) = (6, 3)$ is impossible.
+\end{lemma}
+\begin{proof}
+Elementary elimination over $\mathbb{Z}[1/2]$ across all $S_3 \times S_3 \times \mathbb{Z}_2$ pivot-triple orbits shows that any $6$-dimensional subspace $V^\perp \subset V(\Perm_3)$ is a zero row or zero column. By integer SNF of the $81$-column Lie algebra matrices, $\dim \mathfrak{g}(\Perm_3) = 4$ (SNF $[1,2]$) whereas $\dim \mathfrak{g}(y_1 y_2 y_3 + y_4 y_5 y_6 + y_7 y_8 y_9) = 6$ (SNF $[1]$), so $\mathrm{ChowRank}_{\F}(\Perm_3) \ge 4$. For $(M, |W|) = (6, 3)$, WLOG $6 \in W$ and $V_W = \mathrm{span}(A_{20}, A_{21}, A_{22})$. For the $2$ gates $m \in W \cap \{1..5\}$, $L_m R_m M_m \in \mathrm{Sym}^3(V_W)$ is purely cubic in row $2$, whereas $\Perm_3$ is linear in row $2$. Extracting the row-$2$-linear component of \eqref{eq:app_eq2} expresses $\Perm_3$ as a sum of at most $5 - 2 = 3$ products of $3$ linear forms, contradicting $\mathrm{ChowRank}_{\F}(\Perm_3) \ge 4$.
+\end{proof}
 
 \begin{thebibliography}{9}
 \bibitem{valiant1979} L.~G.~Valiant, ``The complexity of computing the permanent,'' \emph{Theoretical Computer Science}, vol.~8, no.~2, pp.~189--201, 1979.
