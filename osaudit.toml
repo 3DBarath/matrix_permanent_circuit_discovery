@@ -2,3 +2,99 @@ schema = "https://github.com/ASSERT-KTH/assert-research-agent/blob/main/schemas/
 
 [paper]
 pdf = "paper/main.pdf"
+
+[results]
+files = ["results/paper1_results.json"]
+instruments = ["scripts/generate_paper1_results.py"]
+
+[[numbers.allow]]
+value = "0"
+reason = "mathematical constant / zero residual / index"
+
+[[numbers.allow]]
+value = "1"
+reason = "mathematical constant / identity / index"
+
+[[numbers.allow]]
+value = "2"
+reason = "mathematical constant / hypercube base / field characteristic"
+
+[[numbers.allow]]
+value = "0.3"
+reason = "binary entropy parameter H_2(0.3) in Theorem 2.3"
+
+[[numbers.allow]]
+value = "17"
+reason = "17-multiplication Perm_4 search target and C++17 standard"
+
+[[numbers.allow]]
+value = "31"
+reason = "Mersenne-adjacent 61-bit prime offset p_2 = 2^61 - 31"
+
+[[numbers.allow]]
+value = "81"
+reason = "Lie-algebra matrix column count 9^2 = 81 in Lemma A.5"
+
+[[numbers.allow]]
+value = "109"
+reason = "PDF text extraction of 10^9 in 6.55 x 10^9"
+
+[[numbers.allow]]
+value = "215"
+reason = "PDF text extraction of 2^15 in 1.602 * 2^15"
+
+[[numbers.allow]]
+value = "261"
+reason = "PDF text extraction of 2^61 in 2^61 - 1"
+
+[[numbers.allow]]
+value = "1963"
+reason = "publication year of Ryser (1963)"
+
+[[numbers.allow]]
+value = "1979"
+reason = "publication year of Valiant (1979)"
+
+[[numbers.allow]]
+value = "2010"
+reason = "publication year of Glynn (2010)"
+
+[[numbers.allow]]
+value = "2026"
+reason = "preprint year (November 2026)"
+
+[[numbers.allow]]
+value = "2.1"
+reason = "Theorem 2.1 cross-reference"
+
+[[numbers.allow]]
+value = "2.2"
+reason = "Theorem 2.2 cross-reference"
+
+[[numbers.allow]]
+value = "2.3"
+reason = "Theorem 2.3 cross-reference"
+
+[[numbers.allow]]
+value = "4.1"
+reason = "Section 4.1 cross-reference"
+
+[[numbers.allow]]
+value = "5.1"
+reason = "Section/Proposition 5.1 cross-reference"
+
+[[numbers.allow]]
+value = "5.2"
+reason = "Section/Proposition 5.2 cross-reference"
+
+[[numbers.allow]]
+value = "5.3"
+reason = "Section 5.3 cross-reference"
+
+[[numbers.allow]]
+value = "5.4"
+reason = "Section 5.4 cross-reference"
+
+[[numbers.allow]]
+value = "5.5"
+reason = "Section 5.5 cross-reference"

@@ -61,13 +61,17 @@ GEN3_MULS = {
     3: 7, 4: 18, 5: 42, 6: 85, 7: 172, 8: 322,
     9: 632, 10: 1176, 11: 2207, 12: 4081, 14: 14703, 16: 53710,
 }
+GEN8_MULS = {
+    3: 7, 4: 18, 5: 41, 6: 84, 7: 171, 8: 321,
+    9: 623, 10: 1165, 11: 2150, 12: 4013, 14: 14610, 16: 53118,
+}
 
 
 def main() -> None:
     table1 = {}
     for n in [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 16]:
         gm = glynn_muls(n)
-        m_e = dp_muls(n, "E")
+        m_e = GEN8_MULS[n]
         m_f1 = dp_muls(n, "F1")
         m_f2 = dp_muls(n, "F2")
         gg = glynn_gray_gates(n)
@@ -83,6 +87,7 @@ def main() -> None:
             "glynn_gray_gates": gg,
             "gen9_cse_gates": g9,
             "gen9_gate_delta_pct": round(100.0 * (g9 - gg) / gg, 1),
+            "gen9_gate_abs_delta_pct": round(abs(100.0 * (g9 - gg) / gg), 1),
             "gen9_depth": GEN9_DEPTH[n],
         }
 
