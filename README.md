@@ -1,9 +1,9 @@
 # Exact Matrix Permanent Circuit Discovery
 
-Exact, branch-free arithmetic Straight-Line Programs (SLPs) for the $n \times n$ matrix permanent $\mathrm{Perm}(A)$ over any field $\mathbb{F}$ with $\mathrm{char}(\mathbb{F}) \neq 2$, achieving strictly fewer non-scalar multiplications and total arithmetic operations than the classical Glynn + Gray code baseline.
+Exact, branch-free arithmetic Straight-Line Programs (SLPs) for the $n \times n$ matrix permanent $\mathrm{Perm}(A)$ over any field $\mathbb{F}$ with $\mathrm{char}(\mathbb{F}) \neq 2$, achieving $O(2^n)$ non-scalar multiplications and strictly fewer total arithmetic operations than Glynn + Gray code for all $n \ge 10$ (alongside an exact sub-$2^n$ solver for sparse and bounded-degree graphs).
 
 **Author:** Barath B ([ORCID: 0009-0008-8195-539X](https://orcid.org/0009-0008-8195-539X))  
-**Preprint:** [`paper/main.pdf`](paper/main.pdf) | [`paper/main.tex`](paper/main.tex)
+**Preprints:** Part I: [`paper/main.pdf`](paper/main.pdf) ([`main.tex`](paper/main.tex)) | Part II: [`paper_sparse/main.pdf`](paper_sparse/main.pdf) ([`main.tex`](paper_sparse/main.tex))
 
 ---
 
@@ -29,13 +29,13 @@ Exact, branch-free arithmetic Straight-Line Programs (SLPs) for the $n \times n$
 ## Architectural Evolution
 
 * **Gen 1:** Continuous ALS rank-7 tensor decomposition of all six $2 \times 2$ minors lifted over $\mathbb{Q}$ ($n=4 \implies 20$ muls).
-* **Gen 2 Champion ($n=4$):** Fused rank-7 lift tensor with a rank-1 update of a sign-diagonal linear layer: $8L = \mathrm{diag}(+1,-1,-1,+1,-1,+1,+1)(I_7 - \mathbf{1}\sigma^T)$. Yields **18 non-scalar muls** and **84 total gates** (symbolic residual 0 in $\mathbb{Q}[A]$).
+* **Gen 2 ($n=4$):** Fused rank-7 lift tensor with a rank-1 update of a sign-diagonal linear layer: $8L = \mathrm{diag}(+1,-1,-1,+1,-1,+1,+1)(I_7 - \mathbf{1}\sigma^T)$. Yields **18 non-scalar muls** and **84 total gates** (symbolic residual 0 in $\mathbb{Q}[A]$).
 * **Gen 3 (`general_n_opttree.py`):** General-$n$ dynamic programming binary tree with Dual Degree-Parity compression (Prefix Degree Interpolation + Suffix Parity Annihilation + Parseval Final Collapse), proving the asymptotic **$O(2^n)$** non-scalar bound.
-* **Gen 5 Champion (`general_n_butterfly_opttree.py`):** Eliminates all dense rational matrices using $O(m 2^m)$ Möbius-Zeta butterfly networks and Hasse-diagram row evaluation. Proves that total gates scale at $O(n 2^n)$, beating Glynn + Gray code on **both** multiplications and total gates at $n \ge 10$.
+* **Gen 5 (`general_n_butterfly_opttree.py`):** Eliminates all dense rational matrices using $O(m 2^m)$ Möbius-Zeta butterfly networks and Hasse-diagram row evaluation, beating Glynn + Gray code on **both** multiplications and total gates for $n \ge 10$.
 * **Gen 6 (`slp_compiler.py` & `opttree_native_mod61.cpp`):** Full Straight-Line Program SSA compiler with algebraic CSE and dead-code elimination. Includes a native C++17 hardware benchmark running branch-free 128-bit modular arithmetic over the Mersenne prime $2^{61}-1$, bit-exact verified up to $n = 14$.
-* **Gen 7:** Discovers **Mechanism D** (Double-Sided Dual-Ball Annihilation). Zeroes out terms on disjoint low- and high-weight Hamming balls simultaneously. Includes 1.6 MB polynomial-ring SIMD benchmark over $\mathbb{F}_{2^{61}-1}[x]/(x^8-2)$.
+* **Gen 7:** Discovers **Mechanism D** (Double-Sided Dual-Ball Annihilation). Zeroes out terms on disjoint low- and high-weight Hamming balls simultaneously. Includes a polynomial-ring SIMD benchmark over $\mathbb{F}_{2^{61}-1}[x]/(x^8-2)$.
 * **Gen 8:** Proves **Mechanism E** (Degree-Preserving Recursive Dual-Ball Annihilation). Shows degree is strictly preserved under polynomial shifts, establishing an exact symmetric binary tree recurrence.
-* **Gen 9 Champion (Min Total Gates, `general_n_butterfly_opttree.py`):** Fused Möbius–Zeta OptTree with Mechanism F1, achieving the absolute minimum total gate count with CSE: **42,945 total gates** at $n = 12$ (**−13.1% fewer arithmetic operations than Glynn**). Also adds exact $O(n^r)$ polynomial-time MacMahon/Barvinok solver for rank-$r$ matrices (`src/low_rank_permanent.py`).
+* **Gen 9 (Min Total Gates, `general_n_butterfly_opttree.py`):** Fused Möbius–Zeta OptTree with Mechanism F1, achieving the lowest total gate count with CSE: **42,945 total gates** at $n = 12$ (**−13.1% fewer arithmetic operations than Glynn**). Also adds exact $O(n^r)$ polynomial-time MacMahon/Barvinok solver for rank-$r$ matrices (`src/low_rank_permanent.py`).
 * **Gen 10 (`general_n_schur_f2.py`):** **Mechanism F2 (Schur-Complement Butterflies)** drops $r = K(n, a-2)$ pivot coordinates and solves an $r \times r$ incidence system, reaching the dual-ball DP optimum $\mathrm{Opt}_{\mathrm{F2}}(n)$ of **83 muls** at $n=6$, **169 muls** at $n=7$, **1,152 muls** at $n=10$, and **3,941 muls** at $n=12$ (**−82.5% vs. Glynn**).
 
 ---
