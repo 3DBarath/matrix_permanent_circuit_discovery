@@ -88,7 +88,7 @@ The matrix permanent of an $n \times n$ matrix $A$, defined by
 \end{equation}
 is a foundational counting problem in computational complexity~\cite{valiant1979}. In quantum optics, $\Perm(A)$ governs the transition amplitudes of indistinguishable photons in linear optical networks (Boson Sampling)~\cite{aaronson2011}, and in statistical mechanics it counts monomer-dimer covers and perfect matchings in bipartite graphs.
 
-For arbitrary dense matrices, Ryser's classical inclusion-exclusion algorithm \cite{ryser1963} and Glynn's polarization formula \cite{glynn2010} established the baseline complexity of $(n-1)2^{n-1}$ non-scalar multiplications and $\Theta(n \cdot 2^n)$ total gates. In companion work (Part~I) \cite{part1_paper}, the author eliminated the polynomial factor $n$ from multiplicative complexity, achieving the exact information-theoretic linear hypercube floor of $O(2^n)$ non-scalar multiplications ($1.602 \cdot 2^{15}$ at $n = 16$) with $O(n \cdot 2^n)$ total gates.
+For arbitrary dense matrices, Ryser's classical inclusion-exclusion algorithm \cite{ryser1963} and Glynn's polarization formula \cite{glynn2010} established the baseline complexity of $(n-1)2^{n-1}$ non-scalar multiplications and $\Theta(n \cdot 2^n)$ total gates. In companion work (Part~I) \cite{part1_paper}, the author eliminated the polynomial factor $n$ from multiplicative complexity, achieving $O(2^n)$ non-scalar multiplications ($1.602 \cdot 2^{15}$ at $n = 16$) with $\Theta(n \cdot 2^n)$ total gates.
 
 However, for dense matrices over general fields, the exponential base $2$ is bounded from below by the necessity of sampling the full Boolean hypercube $\{-1, 1\}^n$ to annihilate lower-degree cross-terms.
 
@@ -307,7 +307,7 @@ AI coding and writing assistants were used during algorithm discovery, C++17/CUD
 \bibitem{valiant1979} L.~G.~Valiant, ``The complexity of computing the permanent,'' \emph{Theoretical Computer Science}, vol.~8, no.~2, pp.~189--201, 1979.
 \bibitem{ryser1963} H.~J.~Ryser, \emph{Combinatorial Mathematics}, Carus Mathematical Monographs, No.~14, Mathematical Association of America, 1963.
 \bibitem{glynn2010} D.~G.~Glynn, ``The permanent of a square matrix,'' \emph{European Journal of Combinatorics}, vol.~31, no.~7, pp.~1887--1891, 2010.
-\bibitem{part1_paper} Barath~B, ``Exact $O(2^n)$-Multiplication Circuits for the Matrix Permanent via Degree-Preserving Dual-Ball Annihilation and M\"obius--Zeta Butterflies,'' \emph{Preprint}, 2026.
+\bibitem{part1_paper} Barath~B, ``Compressing Glynn's Formula: Exact $O(2^n)$-Multiplication Circuits for the Matrix Permanent via Degree-Preserving Dual-Ball Annihilation and M\"obius--Zeta Butterflies,'' \emph{Preprint}, 2026.
 \bibitem{aaronson2011} S.~Aaronson and A.~Arkhipov, ``The computational complexity of linear optics,'' in \emph{Proceedings of the 43rd Annual ACM Symposium on Theory of Computing (STOC)}, pp.~333--342, 2011.
 \bibitem{jsv2004} M.~Jerrum, A.~Sinclair, and E.~Vigoda, ``A polynomial-time approximation algorithm for the permanent of a matrix with non-negative entries,'' \emph{Journal of the ACM}, vol.~51, no.~4, pp.~671--697, 2004.
 \bibitem{servediowan2005} R.~A.~Servedio and A.~Wan, ``Computing sparse permanents faster,'' \emph{Information Processing Letters}, vol.~96, no.~3, pp.~89--92, 2005.
